@@ -1,4 +1,5 @@
-// midi.drum.base
+// beat.maker
+// random midi drum beat generator
 // written by goldfish
 // 
 
@@ -63,6 +64,13 @@ boolean progPan = 0;
 int tempo = minTempo;
 unsigned long nextBeat;
 unsigned long tempoCheck;
+unsigned long nextPoll;
+
+int currentStep = 0;
+boolean kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+boolean sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+boolean tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+boolean cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 void setup() {
   //  Set MIDI baud rate:
@@ -110,18 +118,41 @@ void setup() {
   
   // set tempo trigger for next beat
   nextBeat = millis();
+  
+  // set up pattern 
+  currentStep = 0;
 }
 
 void loop() {
   if( millis() > nextBeat ) {
+    // set time for next beat
+    nextBeat = millis() + tempo;
+    
+    // play beats for current step
+    
     midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
     delay( 20 );
     midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
     
-    // set time for next beat
-    nextBeat = millis() + tempo;
+    // increment step
+    currentStep++;
+    if( currentStep == 32 ){
+      currentStep = 0;
+    }
   }
   
+  // poll programming keys
+  if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
+    pKick = digitalRead( pKickSW );
+    digitalWrite( pKickLED, pKick );
+    pSnare = digitalRead( pSnareSW );
+    digitalWrite( pSnareLED, pSnare );
+    pToms = digitalRead( pTomsSW );
+    digitalWrite( pTomsLED, pToms );
+    pCymbals = digitalRead( pCymbals );
+    digitalWrite( pCymbalsLED, pCymbals );
+  }
+    
   // check and update tempo if needed
   tempoCheck = minTempo + analogRead( tempoPot );
   if( abs( tempo - tempoCheck ) > 10 ){ 
