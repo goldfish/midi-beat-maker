@@ -44,20 +44,22 @@
 #define pCymbalsLED (11)
 #define pCymbalsSW (8)
 
-#define progPatternSW (4)
+#define progVolumeSW (4)
 #define progRandomSW (7)
 #define progPanSW (12)
 
 #define tempoLED (13)
 
-#define minTempo (200);
+#define minTempo (200)
+
+#define debounceTime (2)
 
 // define Global variables
 boolean pKick = 0;
 boolean pSnare = 0;
 boolean pToms = 0;
 boolean pCymbals = 0;
-boolean progPattern = 0;
+boolean progVolume = 0;
 boolean progRandom = 0;
 boolean progPan = 0;
 
@@ -92,7 +94,7 @@ void setup() {
   pinMode( pTomsSW, INPUT );
   pinMode( pCymbalsSW, INPUT );
   
-  pinMode( progPatternSW, INPUT );
+  pinMode( progVolumeSW, INPUT );
   pinMode( progRandomSW, INPUT );
   pinMode( progPanSW, INPUT );
   
@@ -143,6 +145,7 @@ void loop() {
   
   // poll programming keys
   if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
+    delay( debounceTime ); // debounce pause
     pKick = digitalRead( pKickSW );
     digitalWrite( pKickLED, pKick );
     pSnare = digitalRead( pSnareSW );
@@ -151,6 +154,24 @@ void loop() {
     digitalWrite( pTomsLED, pToms );
     pCymbals = digitalRead( pCymbals );
     digitalWrite( pCymbalsLED, pCymbals );
+  }
+  if( progVolume != digitalRead( progVolumeSW ) || progRandom != digitalRead( progRandomSW ) || progPan != digitalRead( progPanSW ) ){
+    delay( debounceTime ); //debounce pause
+    int NEWprogVolume = digitalRead( progVolumeSW );
+    int NEWprogRandom = digitalRead( progRandomSW );
+    int NEWprogPan = digitalRead( progPanSW );
+    if( NEWprogVolume != progVolume ){
+      // set volume based on prog pot
+      int newValue = analogRead( progPot );
+    }
+    if( NEWprogRandom != progRandom ){
+      // set randomness based on prog pot
+      int newValue = analogRead( progPot );
+    }
+    if( NEWprogPan != progPan ){
+      // set pan based on prog pot
+      int newValue = analogRead( progPot );
+    }
   }
     
   // check and update tempo if needed
