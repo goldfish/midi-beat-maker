@@ -55,7 +55,7 @@
 #define debounceTime (2)
 
 // define Global variables
-boolean pKick = 0;
+boolean pKick = 0;  // initial value of programming switches
 boolean pSnare = 0;
 boolean pToms = 0;
 boolean pCymbals = 0;
@@ -69,10 +69,10 @@ unsigned long tempoCheck;
 unsigned long nextPoll;
 
 int currentStep = 0;
-boolean kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-boolean sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-boolean tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-boolean cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 void setup() {
   //  Set MIDI baud rate:
@@ -131,14 +131,26 @@ void loop() {
     nextBeat = millis() + tempo;
     
     // play beats for current step
-    
-    midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
-    delay( 20 );
-    midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
+    if( kPattern[ currentStep ] ){
+      midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
+      delay( 20 );
+      midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
+    }
+    if( sPattern[ currentStep ] ){
+      midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+      delay( 20 );
+      midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+    }
+    if( tPattern[ currentStep ] ){
+      // toms pattern
+    }
+    if( cPattern[ currentStep ] ){
+      // cymbals pattern
+    }
     
     // increment step
     currentStep++;
-    if( currentStep == 32 ){
+    if( currentStep == 32 ){ // 32 steps in the pattern
       currentStep = 0;
     }
   }
