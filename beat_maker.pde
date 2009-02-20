@@ -50,7 +50,7 @@
 
 #define tempoLED (13)
 
-#define minTempo (200)
+#define minTempo (1100)
 
 #define debounceTime (2)
 
@@ -112,7 +112,7 @@ void setup() {
   digitalWrite( pTomsLED, HIGH );
   digitalWrite( pCymbalsLED, HIGH );
   
-  delay( 250 );
+  delay( 500 );
   
   // read prog switches and set leds correctly
   pKick = digitalRead( pKickSW );
@@ -124,8 +124,15 @@ void setup() {
   pCymbals = digitalRead( pCymbals );
   digitalWrite( pCymbalsLED, pCymbals );
   
+  // ***************************************************************************888
+  Serial.print( "Prog Switches " );
+  Serial.print( pKick, BIN );
+  Serial.print( pSnare, BIN );
+  Serial.print( pToms, BIN );
+  Serial.print( pCymbals, BIN );
+  
   // set tempo from tempoPot 
-  tempo = minTempo + analogRead( tempoPot );
+  tempo = 2 * ( minTempo - analogRead( tempoPot ) );
   
   // set tempo trigger for next beat
   nextBeat = millis();
@@ -136,6 +143,8 @@ void setup() {
 
 void loop() {
   if( millis() > nextBeat ) {
+    digitalWrite( tempoLED, HIGH );
+    
     // set time for next beat
     nextBeat = millis() + tempo;
     
@@ -162,6 +171,8 @@ void loop() {
     if( currentStep == 32 ){ // 32 steps in the pattern
       currentStep = 0;
     }
+    delay( 125 );
+    digitalWrite( tempoLED, LOW );
   }
   
   // poll programming keys
@@ -194,9 +205,9 @@ void loop() {
       int newValue = analogRead( progPot );
     }
   }
-    
+  
   // check and update tempo if needed
-  tempoCheck = minTempo + analogRead( tempoPot );
+  tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
   if( abs( tempo - tempoCheck ) > 10 ){ 
     tempo = tempoCheck;
   }
