@@ -69,115 +69,52 @@ unsigned long tempoCheck;
 unsigned long nextPoll;
 
 int currentStep = 0;
-byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte kPattern[] = { 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 void setup() {
-  //  Set MIDI baud rate:
-  //Serial.begin( 31250 );
-
-  //  Set serial link baud rate - for testing
-  Serial.begin( 9600 );
+    //  Set MIDI baud rate:
+    //Serial.begin( 31250 );
   
-  // define switch and led pin modes
-  pinMode( tempoLED, OUTPUT );
-  
-  pinMode( pKickLED, OUTPUT );
-  pinMode( pSnareLED, OUTPUT );
-  pinMode( pTomsLED, OUTPUT );
-  pinMode( pCymbalsLED, OUTPUT );
-  
-  pinMode( pKickSW, INPUT );
-  digitalWrite( pKickSW, HIGH );
-  pinMode( pSnareSW, INPUT );
-  digitalWrite( pSnareSW, HIGH );
-  pinMode( pTomsSW, INPUT );
-  digitalWrite( pTomsSW, HIGH );
-  pinMode( pCymbalsSW, INPUT );
-  digitalWrite( pCymbalsSW, HIGH );
-  
-  pinMode( progVolumeSW, INPUT );
-  digitalWrite( progVolumeSW, HIGH );
-  pinMode( progRandomSW, INPUT );
-  digitalWrite( progRandomSW, HIGH );
-  pinMode( progPanSW, INPUT );
-  digitalWrite( progPanSW, HIGH );
-  
-  // turn on all leds
-  digitalWrite( tempoLED, HIGH );  
-  digitalWrite( pKickLED, HIGH );
-  digitalWrite( pSnareLED, HIGH );
-  digitalWrite( pTomsLED, HIGH );
-  digitalWrite( pCymbalsLED, HIGH );
-  
-  delay( 2000 );
-  
-  // read prog switches and set leds correctly
-  pKick = digitalRead( pKickSW );
-  digitalWrite( pKickLED, pKick );
-  pSnare = digitalRead( pSnareSW );
-  digitalWrite( pSnareLED, pSnare );
-  pToms = digitalRead( pTomsSW );
-  digitalWrite( pTomsLED, pToms );
-  pCymbals = digitalRead( pCymbals );
-  digitalWrite( pCymbalsLED, pCymbals );
-  
-  // ***************************************************************************
-  Serial.print( "Prog Switches " );
-  Serial.print( pKick, BIN );
-  Serial.print( pSnare, BIN );
-  Serial.print( pToms, BIN );
-  Serial.print( pCymbals, BIN );
-  
-  // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
-  tempo = 2 * ( minTempo - analogRead( tempoPot ) );
-  
-  // set tempo trigger for next beat
-  nextBeat = millis();
-  
-  // set up pattern 
-  currentStep = 0;
-}
-
-void loop() {
-  if( millis() > nextBeat ) {
-    digitalWrite( tempoLED, HIGH );
+    //  Set serial link baud rate - for testing
+    Serial.begin( 9600 );
     
-    // set time for next beat
-    nextBeat = millis() + tempo;
+    // define switch and led pin modes
+    pinMode( tempoLED, OUTPUT );
     
-    // play beats for current step
-    if( kPattern[ currentStep ] ){
-      midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
-      delay( 20 );
-      midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
-    }
-    if( sPattern[ currentStep ] ){
-      midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-      delay( 20 );
-      midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
-    }
-    if( tPattern[ currentStep ] ){
-      // toms pattern
-    }
-    if( cPattern[ currentStep ] ){
-      // cymbals pattern
-    }
+    pinMode( pKickLED, OUTPUT );
+    pinMode( pSnareLED, OUTPUT );
+    pinMode( pTomsLED, OUTPUT );
+    pinMode( pCymbalsLED, OUTPUT );
     
-    // increment step
-    currentStep++;
-    if( currentStep == 32 ){ // 32 steps in the pattern
-      currentStep = 0;
-    }
-    delay( 125 );
-    digitalWrite( tempoLED, LOW );
-  }
-  
-  // poll programming keys
-  if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
-    delay( debounceTime ); // debounce pause
+    pinMode( pKickSW, INPUT );
+    digitalWrite( pKickSW, HIGH );
+    pinMode( pSnareSW, INPUT );
+    digitalWrite( pSnareSW, HIGH );
+    pinMode( pTomsSW, INPUT );
+    digitalWrite( pTomsSW, HIGH );
+    pinMode( pCymbalsSW, INPUT );
+    digitalWrite( pCymbalsSW, HIGH );
+    
+    pinMode( progVolumeSW, INPUT );
+    digitalWrite( progVolumeSW, HIGH );
+    pinMode( progRandomSW, INPUT );
+    digitalWrite( progRandomSW, HIGH );
+    pinMode( progPanSW, INPUT );
+    digitalWrite( progPanSW, HIGH );
+    
+    // turn on all leds
+    digitalWrite( tempoLED, HIGH );  
+    digitalWrite( pKickLED, HIGH );
+    digitalWrite( pSnareLED, HIGH );
+    digitalWrite( pTomsLED, HIGH );
+    digitalWrite( pCymbalsLED, HIGH );
+    
+    delay( 2000 );
+    
+    // read prog switches and set leds correctly
     pKick = digitalRead( pKickSW );
     digitalWrite( pKickLED, pKick );
     pSnare = digitalRead( pSnareSW );
@@ -186,42 +123,105 @@ void loop() {
     digitalWrite( pTomsLED, pToms );
     pCymbals = digitalRead( pCymbals );
     digitalWrite( pCymbalsLED, pCymbals );
-  }
-  if( progVolume != digitalRead( progVolumeSW ) || progRandom != digitalRead( progRandomSW ) || progPan != digitalRead( progPanSW ) ){
-    delay( debounceTime ); //debounce pause
-    int NEWprogVolume = digitalRead( progVolumeSW );
-    int NEWprogRandom = digitalRead( progRandomSW );
-    int NEWprogPan = digitalRead( progPanSW );
-    if( NEWprogVolume != progVolume ){
-      // set volume based on prog pot
-      int newValue = analogRead( progPot );
-    }
-    if( NEWprogRandom != progRandom ){
-      // set randomness based on prog pot
-      int newValue = analogRead( progPot );
-    }
-    if( NEWprogPan != progPan ){
-      // set pan based on prog pot
-      int newValue = analogRead( progPot );
-    }
-  }
   
-  // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
-  tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
-  if( abs( tempo - tempoCheck ) > 10 ){ 
-    tempo = tempoCheck;
-  }
+    // ***************************************************************************
+    Serial.print( "Prog Switches " );
+    Serial.print( pKick, BIN );
+    Serial.print( pSnare, BIN );
+    Serial.print( pToms, BIN );
+    Serial.print( pCymbals, BIN );
+    
+    // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
+    tempo = 2 * ( minTempo - analogRead( tempoPot ) );
+    
+    // set tempo trigger for next beat
+    nextBeat = millis();
+    
+    // set up pattern 
+    currentStep = 0;
 }
+
+void loop() {
+    if( millis() > nextBeat ) {
+        digitalWrite( tempoLED, HIGH );
+        
+        // set time for next beat
+        nextBeat = millis() + tempo;
+        
+        // play beats for current step
+        if( kPattern[ currentStep ] ){
+            midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
+            delay( 20 );
+            midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
+        }
+        if( sPattern[ currentStep ] ){
+            midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+            delay( 20 );
+            midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+        }
+        if( tPattern[ currentStep ] ){
+            // toms pattern
+        }
+        if( cPattern[ currentStep ] ){
+            // cymbals pattern
+        }
+        
+        // increment step
+        currentStep++;
+        if( currentStep == 32 ){ // 32 steps in the pattern
+            currentStep = 0;
+        }
+        delay( 125 );
+        digitalWrite( tempoLED, LOW );
+    }
+    
+    // poll programming keys
+    if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
+        delay( debounceTime ); // debounce pause
+        pKick = digitalRead( pKickSW );
+        digitalWrite( pKickLED, pKick );
+        pSnare = digitalRead( pSnareSW );
+        digitalWrite( pSnareLED, pSnare );
+        pToms = digitalRead( pTomsSW );
+        digitalWrite( pTomsLED, pToms );
+        pCymbals = digitalRead( pCymbals );
+        digitalWrite( pCymbalsLED, pCymbals );
+    }
+    if( progVolume != digitalRead( progVolumeSW ) || progRandom != digitalRead( progRandomSW ) || progPan != digitalRead( progPanSW ) ){
+        delay( debounceTime ); //debounce pause
+        int NEWprogVolume = digitalRead( progVolumeSW );
+        int NEWprogRandom = digitalRead( progRandomSW );
+        int NEWprogPan = digitalRead( progPanSW );
+        if( NEWprogVolume != progVolume ){
+            // set volume based on prog pot
+            int newValue = analogRead( progPot );
+        }
+        if( NEWprogRandom != progRandom ){
+            // set randomness based on prog pot
+            int newValue = analogRead( progPot );
+        }
+        if( NEWprogPan != progPan ){
+            // set pan based on prog pot
+            int newValue = analogRead( progPot );
+        }
+    }
+    
+    // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
+    tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
+    if( abs( tempo - tempoCheck ) > 10 ){ 
+        tempo = tempoCheck;
+    }
+}  
 
 //  Send a three byte midi message  
 void midiSend(char status, char data1, char data2) {
-  Serial.print(status, BYTE); // type of message usually noteon/off and channel
-  Serial.print(data1, BYTE);  // usually note
-  Serial.print(data2, BYTE);  // usually velocity
+    Serial.print(status, BYTE); // type of message usually noteon/off and channel
+    Serial.print(data1, BYTE);  // usually note
+    Serial.print(data2, BYTE);  // usually velocity
 }
 
 //  Send a two byte midi message  
 void midiProg(char status, int data ) {
-  Serial.print(status, BYTE);
-  Serial.print(data, BYTE);
+    Serial.print(status, BYTE);
+    Serial.print(data, BYTE);
 }
