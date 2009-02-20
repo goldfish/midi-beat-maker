@@ -112,7 +112,7 @@ void setup() {
   digitalWrite( pTomsLED, HIGH );
   digitalWrite( pCymbalsLED, HIGH );
   
-  delay( 500 );
+  delay( 2000 );
   
   // read prog switches and set leds correctly
   pKick = digitalRead( pKickSW );
@@ -124,14 +124,14 @@ void setup() {
   pCymbals = digitalRead( pCymbals );
   digitalWrite( pCymbalsLED, pCymbals );
   
-  // ***************************************************************************888
+  // ***************************************************************************
   Serial.print( "Prog Switches " );
   Serial.print( pKick, BIN );
   Serial.print( pSnare, BIN );
   Serial.print( pToms, BIN );
   Serial.print( pCymbals, BIN );
   
-  // set tempo from tempoPot 
+  // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
   tempo = 2 * ( minTempo - analogRead( tempoPot ) );
   
   // set tempo trigger for next beat
@@ -206,7 +206,7 @@ void loop() {
     }
   }
   
-  // check and update tempo if needed
+  // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
   tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
   if( abs( tempo - tempoCheck ) > 10 ){ 
     tempo = tempoCheck;
