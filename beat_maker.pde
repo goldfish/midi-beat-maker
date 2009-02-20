@@ -90,13 +90,20 @@ void setup() {
   pinMode( pCymbalsLED, OUTPUT );
   
   pinMode( pKickSW, INPUT );
+  digitalWrite( pKickSW, HIGH );
   pinMode( pSnareSW, INPUT );
+  digitalWrite( pSnareSW, HIGH );
   pinMode( pTomsSW, INPUT );
+  digitalWrite( pTomsSW, HIGH );
   pinMode( pCymbalsSW, INPUT );
+  digitalWrite( pCymbalsSW, HIGH );
   
   pinMode( progVolumeSW, INPUT );
+  digitalWrite( progVolumeSW, HIGH );
   pinMode( progRandomSW, INPUT );
+  digitalWrite( progRandomSW, HIGH );
   pinMode( progPanSW, INPUT );
+  digitalWrite( progPanSW, HIGH );
   
   // turn on all leds
   digitalWrite( tempoLED, HIGH );  
@@ -104,6 +111,8 @@ void setup() {
   digitalWrite( pSnareLED, HIGH );
   digitalWrite( pTomsLED, HIGH );
   digitalWrite( pCymbalsLED, HIGH );
+  
+  delay( 250 );
   
   // read prog switches and set leds correctly
   pKick = digitalRead( pKickSW );
