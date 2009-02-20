@@ -28,11 +28,11 @@
 
 // define analog input pins
 #define tempoPot (0)
-#define kickPot (1)
-#define snarePot (2)
-#define tomsPot (3)
-#define cymbalsPot (4)
-#define progPot (5)
+#define progPot (1)
+#define kickPot (2)
+#define snarePot (3)
+#define tomsPot (4)
+#define cymbalsPot (5)
 
 // define digital i/o pins
 #define pKickLED (5)
