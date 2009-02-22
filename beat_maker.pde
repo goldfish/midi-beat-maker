@@ -52,8 +52,6 @@
 
 #define minTempo (1100)
 
-#define debounceTime (2)
-
 // define Global variables
 boolean pKick = 0;  // initial value of programming switches
 boolean pSnare = 0;
@@ -67,6 +65,9 @@ int tempo = minTempo;
 unsigned long nextBeat;
 unsigned long tempoCheck;
 unsigned long nextPoll;
+unsigned long stepTime;
+unsigned long tempoLEDoff;
+int pollInterval = 10;
 
 int currentStep = 0;
 byte kPattern[] = { 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -134,20 +135,22 @@ void setup() {
     // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
     tempo = 2 * ( minTempo - analogRead( tempoPot ) );
     
-    // set tempo trigger for next beat
+    // set tempo trigger for next beat and next poll
     nextBeat = millis();
+    nextPoll = millis();
     
     // set up pattern 
     currentStep = 0;
 }
 
 void loop() {
-    if( millis() > nextBeat ) {
-        digitalWrite( tempoLED, HIGH );
-        
+    stepTime = millis();
+    if( stepTime > nextBeat ) {
         // set time for next beat
-        nextBeat = millis() + tempo;
+        nextBeat = stepTime + tempo;
         
+        digitalWrite( tempoLED, HIGH );
+                
         // play beats for current step
         if( kPattern[ currentStep ] ){
             midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
@@ -171,27 +174,35 @@ void loop() {
         if( currentStep == 32 ){ // 32 steps in the pattern
             currentStep = 0;
         }
-        delay( 125 );
+        tempoLEDoff = stepTime + 125;
+    }
+    
+    if( stepTime > tempoLEDoff ){
         digitalWrite( tempoLED, LOW );
+        tempoLEDoff += 5000; // set this above the next possible led off so we don't keep hammering it down.
     }
     
-    // poll programming keys
-    if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
-        delay( debounceTime ); // debounce pause
-        pKick = digitalRead( pKickSW );
-        digitalWrite( pKickLED, pKick );
-        pSnare = digitalRead( pSnareSW );
-        digitalWrite( pSnareLED, pSnare );
-        pToms = digitalRead( pTomsSW );
-        digitalWrite( pTomsLED, pToms );
-        pCymbals = digitalRead( pCymbals );
-        digitalWrite( pCymbalsLED, pCymbals );
-    }
+    if( stepTime > nextPoll ){
+        // set time for next beat
+        nextPoll = stepTime + pollInterval;
+        
+        // poll programming keys
+        if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
+            pKick = digitalRead( pKickSW );
+            digitalWrite( pKickLED, pKick );
+            pSnare = digitalRead( pSnareSW );
+            digitalWrite( pSnareLED, pSnare );
+            pToms = digitalRead( pTomsSW );
+            digitalWrite( pTomsLED, pToms );
+            pCymbals = digitalRead( pCymbals );
+            digitalWrite( pCymbalsLED, pCymbals );
+        }
     
-    // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
-    tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
-    if( abs( tempo - tempoCheck ) > 10 ){ 
-        tempo = tempoCheck;
+        // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
+        tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
+        if( abs( tempo - tempoCheck ) > 10 ){ 
+            tempo = tempoCheck;
+        }
     }
 }  
 
