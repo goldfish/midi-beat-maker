@@ -61,6 +61,11 @@ boolean progVolume = 0;
 boolean progRandom = 0;
 boolean progPan = 0;
 
+int kickPotValue = 0;
+int snarePotValue = 0;
+int tomsPotValue = 0;
+int cymbalsPotValue = 0;
+
 int tempo = minTempo;
 unsigned long nextBeat;
 unsigned long tempoCheck;
@@ -70,7 +75,7 @@ unsigned long tempoLEDoff;
 int pollInterval = 10;
 
 int currentStep = 0;
-byte kPattern[] = { 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -137,7 +142,7 @@ void setup() {
     
     // set tempo trigger for next beat and next poll
     nextBeat = millis();
-    nextPoll = millis();
+    nextPoll = nextBeat;
     
     // set up pattern 
     currentStep = 0;
@@ -186,15 +191,35 @@ void loop() {
         // set time for next beat
         nextPoll = stepTime + pollInterval;
         
+        // poll pattern inputs
+        int kickPotRead = analogRead( kickPot );
+        if( abs( kickPotRead - kickPotValue ) > 10 ){
+            kickPotValue = kickPotRead;
+            setKickPattern( kickPotValue );
+        }
+        
         // poll programming keys
-        if( pKick != digitalRead( pKickSW ) || pSnare != digitalRead( pSnareSW ) || pToms != digitalRead( pTomsSW ) || pCymbals != digitalRead( pCymbals ) ){
-            pKick = digitalRead( pKickSW );
+        int pKickRead = digitalRead( pKickSW );
+        if( pKick != pKickRead ){
+            pKick = pKickRead;
             digitalWrite( pKickLED, pKick );
-            pSnare = digitalRead( pSnareSW );
+        }
+
+        int pSnareRead = digitalRead( pSnareSW );
+        if( pSnare != pSnareRead ){
+            pSnare = pSnareRead;
             digitalWrite( pSnareLED, pSnare );
-            pToms = digitalRead( pTomsSW );
+        }
+        
+        int pTomsRead = digitalRead( pTomsSW );
+        if( pToms != pTomsRead ){
+            pToms = pTomsRead;
             digitalWrite( pTomsLED, pToms );
-            pCymbals = digitalRead( pCymbals );
+        }
+        
+        int pCymbalsRead = digitalRead( pCymbals );
+        if( pCymbals != pCymbalsRead ){
+            pCymbals = pCymbalsRead;
             digitalWrite( pCymbalsLED, pCymbals );
         }
     
@@ -205,6 +230,39 @@ void loop() {
         }
     }
 }  
+
+//  Set the kick pattern
+void setKickPattern( int patternValue ) {
+    if( patternValue < 50 ){ // empty pattern
+        for( int i = 0; i < 32; i++ ){
+            kPattern[ i ] = 0;
+        }
+    }
+    else if( patternValue < 250 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%8 == 0 ){ // hit every 8th beat
+                kPattern[i] = 1;
+            }
+            else{
+                kPattern[i] = 0;
+            }
+        }
+    }
+    else if( patternValue < 500 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                kPattern[i] = 1;
+            }
+            else{
+                kPattern[i] = 0;
+            }
+        }    }
+    else{ // full pattern - hit on every beat
+        for( int i = 0; i < 32; i++ ){
+            kPattern[ i ] = 1;
+        }
+    }
+}
 
 //  Send a three byte midi message  
 void midiSend(char status, char data1, char data2) {
