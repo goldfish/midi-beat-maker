@@ -72,13 +72,18 @@ unsigned long tempoCheck;
 unsigned long nextPoll;
 unsigned long stepTime;
 unsigned long tempoLEDoff;
-int pollInterval = 10;
+int pollInterval = 50;
 
 int currentStep = 0;
 byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+int kickRandomness = 0;
+int snareRandomness = 0;
+int tomsRandomness = 0;
+int cymbalsRandomness = 0;
 
 void setup() {
     //  Set MIDI baud rate:
@@ -96,28 +101,27 @@ void setup() {
     pinMode( pCymbalsLED, OUTPUT );
     
     pinMode( pKickSW, INPUT );
-    digitalWrite( pKickSW, HIGH );
+    digitalWrite( pKickSW, HIGH );  // turn on internal pull-up
     pinMode( pSnareSW, INPUT );
-    digitalWrite( pSnareSW, HIGH );
+    digitalWrite( pSnareSW, HIGH ); // turn on internal pull-up
     pinMode( pTomsSW, INPUT );
-    digitalWrite( pTomsSW, HIGH );
+    digitalWrite( pTomsSW, HIGH );  // turn on internal pull-up
     pinMode( pCymbalsSW, INPUT );
-    digitalWrite( pCymbalsSW, HIGH );
+    digitalWrite( pCymbalsSW, HIGH ); // turn on internal pull-up
     
     pinMode( progVolumeSW, INPUT );
-    digitalWrite( progVolumeSW, HIGH );
+    digitalWrite( progVolumeSW, HIGH );  // turn on internal pull-up
     pinMode( progRandomSW, INPUT );
-    digitalWrite( progRandomSW, HIGH );
+    digitalWrite( progRandomSW, HIGH );  // turn on internal pull-up
     pinMode( progPanSW, INPUT );
-    digitalWrite( progPanSW, HIGH );
+    digitalWrite( progPanSW, HIGH );  // turn on internal pull-up
     
-    // turn on all leds
+    // turn on all leds and hold them high for 2 sec
     digitalWrite( tempoLED, HIGH );  
     digitalWrite( pKickLED, HIGH );
     digitalWrite( pSnareLED, HIGH );
     digitalWrite( pTomsLED, HIGH );
     digitalWrite( pCymbalsLED, HIGH );
-    
     delay( 2000 );
     
     // read prog switches and set leds correctly
@@ -246,6 +250,9 @@ void setKickPattern( int patternValue ) {
             else{
                 kPattern[i] = 0;
             }
+            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
+                kPattern[i] = !( kPattern[i] );  
+            }
         }
     }
     else if( patternValue < 500 ){
@@ -256,10 +263,19 @@ void setKickPattern( int patternValue ) {
             else{
                 kPattern[i] = 0;
             }
-        }    }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < kickRandomness ){  // applies randomness to each beat.
+                    kPattern[i] = !( kPattern[i] );  
+                }
+            }
+        }
+    }
     else{ // full pattern - hit on every beat
         for( int i = 0; i < 32; i++ ){
             kPattern[ i ] = 1;
+            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
+                kPattern[i] = !( kPattern[i] );  
+            }
         }
     }
 }
