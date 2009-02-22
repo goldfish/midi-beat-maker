@@ -187,24 +187,6 @@ void loop() {
         pCymbals = digitalRead( pCymbals );
         digitalWrite( pCymbalsLED, pCymbals );
     }
-    if( progVolume != digitalRead( progVolumeSW ) || progRandom != digitalRead( progRandomSW ) || progPan != digitalRead( progPanSW ) ){
-        delay( debounceTime ); //debounce pause
-        int NEWprogVolume = digitalRead( progVolumeSW );
-        int NEWprogRandom = digitalRead( progRandomSW );
-        int NEWprogPan = digitalRead( progPanSW );
-        if( NEWprogVolume != progVolume ){
-            // set volume based on prog pot
-            int newValue = analogRead( progPot );
-        }
-        if( NEWprogRandom != progRandom ){
-            // set randomness based on prog pot
-            int newValue = analogRead( progPot );
-        }
-        if( NEWprogPan != progPan ){
-            // set pan based on prog pot
-            int newValue = analogRead( progPot );
-        }
-    }
     
     // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
     tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
