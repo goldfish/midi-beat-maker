@@ -256,12 +256,12 @@ void loop() {
 
 //  Set the kick pattern
 void setKickPattern( int patternValue ) {
-    if( patternValue < 50 ){ // empty pattern
+    if( patternValue < 30 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             kPattern[ i ] = 0;
         }
     }
-    else if( patternValue < 250 ){
+    else if( patternValue < 100 ){
         for( int i = 0; i < 32; i++ ){
             if( i%8 == 0 ){ // hit every 8th beat
                 kPattern[i] = 1;
@@ -274,7 +274,7 @@ void setKickPattern( int patternValue ) {
             }
         }
     }
-    else if( patternValue < 500 ){
+    else if( patternValue < 300 ){
         for( int i = 0; i < 32; i++ ){
             if( i%4 == 0 ){ // hit every 4th beat
                 kPattern[i] = 1;
