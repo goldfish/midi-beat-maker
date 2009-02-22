@@ -202,6 +202,12 @@ void loop() {
             setKickPattern( kickPotValue );
         }
         
+        int snarePotRead = analogRead( snarePot );
+        if( abs( snarePotRead - snarePotValue ) > 10 ){
+            snarePotValue = snarePotRead;
+            setSnarePattern( snarePotValue );
+        }
+
         // poll programming keys
         int pKickRead = digitalRead( pKickSW );
         if( pKick != pKickRead ){
@@ -294,6 +300,51 @@ void setKickPattern( int patternValue ) {
             kPattern[ i ] = 1;
             if( random(1024) < kickRandomness ){  // applies randomness to each beat.
                 kPattern[i] = !( kPattern[i] );  
+            }
+        }
+    }
+}
+
+//  Set the Snare pattern
+void setSnarePattern( int patternValue ) {
+    if( patternValue < 30 ){ // empty pattern
+        for( int i = 0; i < 32; i++ ){
+            sPattern[ i ] = 0;
+        }
+    }
+    else if( patternValue < 100 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%8 == 0 ){ // hit every 8th beat
+                sPattern[i] = 1;
+            }
+            else{
+                sPattern[i] = 0;
+            }
+            if( random(1024) < snareRandomness ){  // applies randomness to each beat.
+                sPattern[i] = !( sPattern[i] );  
+            }
+        }
+    }
+    else if( patternValue < 300 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                sPattern[i] = 1;
+            }
+            else{
+                sPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
+                    sPattern[i] = !( sPattern[i] );  
+                }
+            }
+        }
+    }
+    else{ // full pattern - hit on every beat
+        for( int i = 0; i < 32; i++ ){
+            sPattern[ i ] = 1;
+            if( random(1024) < snareRandomness ){  // applies randomness to each beat.
+                sPattern[i] = !( sPattern[i] );  
             }
         }
     }
