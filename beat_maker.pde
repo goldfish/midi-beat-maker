@@ -72,7 +72,7 @@ unsigned long tempoCheck;
 unsigned long nextPoll;
 unsigned long stepTime;
 unsigned long tempoLEDoff;
-int pollInterval = 50;
+int pollInterval = 75;
 
 int currentStep = 0;
 byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -226,6 +226,25 @@ void loop() {
             pCymbals = pCymbalsRead;
             digitalWrite( pCymbalsLED, pCymbals );
         }
+        
+        // poll programming inputs
+        int progReadValue = analogRead( progPot );
+        if ( digitalRead( progRandomSW ) ){
+            if( pKick ){
+                kickRandomness = progReadValue;
+            }
+            if( pSnare ){
+                snareRandomness = progReadValue;
+            }
+            if( pToms ){
+                tomsRandomness = progReadValue;
+            }
+            if( pCymbals ){
+                cymbalsRandomness = progReadValue;
+            }
+        }
+        /// progVolumeSW 
+        /// progPanSW 
     
         // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
         tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
