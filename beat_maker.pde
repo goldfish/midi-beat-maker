@@ -43,47 +43,59 @@
 #define pTomsSW (6)
 #define pCymbalsLED (11)
 #define pCymbalsSW (8)
-
 #define progVolumeSW (4)
 #define progRandomSW (7)
 #define progPanSW (12)
-
 #define tempoLED (13)
 
+// define remaining global constants
 #define minTempo (1100)
+#define pollInterval (75)
 
 // define Global variables
-boolean pKick = 0;  // initial value of programming switches
-boolean pSnare = 0;
-boolean pToms = 0;
-boolean pCymbals = 0;
-boolean progVolume = 0;
-boolean progRandom = 0;
-boolean progPan = 0;
 
-int kickPotValue = 0;
-int snarePotValue = 0;
-int tomsPotValue = 0;
-int cymbalsPotValue = 0;
+// stored value of programming switches. these get defined in setup()
+boolean pKick;
+boolean pSnare;
+boolean pToms;
+boolean pCymbals;
+boolean progVolume;
+boolean progRandom;
+boolean progPan;
 
-int tempo = minTempo;
-unsigned long nextBeat;
-unsigned long tempoCheck;
-unsigned long nextPoll;
-unsigned long stepTime;
-unsigned long tempoLEDoff;
-int pollInterval = 75;
+// initial values of pattern pots. set at 1200 so that the polling routine will kick in.
+int kickPotValue = 1200;
+int snarePotValue = 1200;
+int tomsPotValue = 1200;
+int cymbalsPotValue = 1200;
 
+// variables to store and control timing
+int tempo = minTempo;  // int tempo doesn't really mean the tempo. It is the length of the pauses between beats.
+unsigned long nextBeat;    // trigger time for next beat
+unsigned long tempoCheck;  // used to monitor tempo pot
+unsigned long nextPoll;    // trigger time for next input poll
+unsigned long stepTime;    // stores the time at the start of the loop(). Eliminates multiple millis() calls.
+unsigned long tempoLEDoff; // stores the trigger time for tempo LED to turn off
+
+// variables related to drum patterns
 int currentStep = 0;
 byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-int kickRandomness = 0;
+int kickRandomness = 0; 
+int kickVolume = 100;        // volume and pan are midi values 0-127
+int kickPan = 64;
 int snareRandomness = 0;
+int snareVolume = 100;
+int snarePan = 64;
 int tomsRandomness = 0;
+int tomsVolume = 100;
+int tomsPan = 64;
 int cymbalsRandomness = 0;
+int cymbalsVolume = 100;
+int cymbalsPan = 64;
 
 void setup() {
     //  Set MIDI baud rate:
@@ -92,29 +104,12 @@ void setup() {
     //  Set serial link baud rate - for testing
     Serial.begin( 9600 );
     
-    // define switch and led pin modes
+    // set up led output pins
     pinMode( tempoLED, OUTPUT );
-    
     pinMode( pKickLED, OUTPUT );
     pinMode( pSnareLED, OUTPUT );
     pinMode( pTomsLED, OUTPUT );
     pinMode( pCymbalsLED, OUTPUT );
-    
-    pinMode( pKickSW, INPUT );
-    digitalWrite( pKickSW, HIGH );  // turn on internal pull-up
-    pinMode( pSnareSW, INPUT );
-    digitalWrite( pSnareSW, HIGH ); // turn on internal pull-up
-    pinMode( pTomsSW, INPUT );
-    digitalWrite( pTomsSW, HIGH );  // turn on internal pull-up
-    pinMode( pCymbalsSW, INPUT );
-    digitalWrite( pCymbalsSW, HIGH ); // turn on internal pull-up
-    
-    pinMode( progVolumeSW, INPUT );
-    digitalWrite( progVolumeSW, HIGH );  // turn on internal pull-up
-    pinMode( progRandomSW, INPUT );
-    digitalWrite( progRandomSW, HIGH );  // turn on internal pull-up
-    pinMode( progPanSW, INPUT );
-    digitalWrite( progPanSW, HIGH );  // turn on internal pull-up
     
     // turn on all leds and hold them high for 2 sec
     digitalWrite( tempoLED, HIGH );  
@@ -123,8 +118,8 @@ void setup() {
     digitalWrite( pTomsLED, HIGH );
     digitalWrite( pCymbalsLED, HIGH );
     delay( 2000 );
-    
-    // read prog switches and set leds correctly
+
+    // read programming switches and set leds correctly
     pKick = digitalRead( pKickSW );
     digitalWrite( pKickLED, pKick );
     pSnare = digitalRead( pSnareSW );
@@ -133,13 +128,22 @@ void setup() {
     digitalWrite( pTomsLED, pToms );
     pCymbals = digitalRead( pCymbals );
     digitalWrite( pCymbalsLED, pCymbals );
-  
-    // ***************************************************************************
-    Serial.print( "Prog Switches " );
-    Serial.print( pKick, BIN );
-    Serial.print( pSnare, BIN );
-    Serial.print( pToms, BIN );
-    Serial.print( pCymbals, BIN );
+    
+    // set up input pins. Set mode as INPUT, and then use digtalWrite HIGH to turn on the internal pull-up resistors.
+    pinMode( pKickSW, INPUT );
+    digitalWrite( pKickSW, HIGH ); 
+    pinMode( pSnareSW, INPUT );
+    digitalWrite( pSnareSW, HIGH ); 
+    pinMode( pTomsSW, INPUT );
+    digitalWrite( pTomsSW, HIGH ); 
+    pinMode( pCymbalsSW, INPUT );
+    digitalWrite( pCymbalsSW, HIGH ); 
+    pinMode( progVolumeSW, INPUT );
+    digitalWrite( progVolumeSW, HIGH );  
+    pinMode( progRandomSW, INPUT );
+    digitalWrite( progRandomSW, HIGH ); 
+    pinMode( progPanSW, INPUT );
+    digitalWrite( progPanSW, HIGH ); 
     
     // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
     tempo = 2 * ( minTempo - analogRead( tempoPot ) );
@@ -159,6 +163,7 @@ void loop() {
         nextBeat = stepTime + tempo;
         
         digitalWrite( tempoLED, HIGH );
+        tempoLEDoff = stepTime + 125;
                 
         // play beats for current step
         if( kPattern[ currentStep ] ){
@@ -183,7 +188,6 @@ void loop() {
         if( currentStep == 32 ){ // 32 steps in the pattern
             currentStep = 0;
         }
-        tempoLEDoff = stepTime + 125;
     }
     
     if( stepTime > tempoLEDoff ){
@@ -235,7 +239,7 @@ void loop() {
         
         // poll programming inputs
         int progReadValue = analogRead( progPot );
-        if ( digitalRead( progRandomSW ) ){
+        if ( digitalRead( progRandomSW ) ){   // set randomness
             if( pKick ){
                 kickRandomness = progReadValue;
             }
