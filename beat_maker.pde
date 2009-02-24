@@ -172,9 +172,45 @@ void loop() {
             midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
         }
         if( sPattern[ currentStep ] ){
-            midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-            delay( 20 );
-            midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+            // 0 - no drum
+            // 1 - snare
+            // 2 - closed 
+            // 3 - snare and close hh
+            // 4 - open hh
+            // 5 - snare and open hh
+            switch( sPattern[ currentStep ] ){
+                case 1:
+                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+                    delay( 20 );
+                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    break;
+                case 2:
+                    midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
+                    delay( 20 );
+                    midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
+                    break;
+                case 3:
+                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
+                    delay( 20 );
+                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
+                    break;
+                case 4:
+                    midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
+                    delay( 20 );
+                    midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
+                    break;
+                case 5:
+                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
+                    delay( 20 );
+                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
+                    break;
+                default:
+                    break;
+            }
         }
         if( tPattern[ currentStep ] ){
             // toms pattern
@@ -340,6 +376,12 @@ void setKickPattern( int patternValue ) {
 
 //  Set the Snare pattern
 void setSnarePattern( int patternValue ) {
+    // 0 - no drum
+    // 1 - snare
+    // 2 - closed hh
+    // 3 - snare and close hh
+    // 4 - open hh
+    // 5 - snare and open hh
     if( patternValue < 30 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             sPattern[ i ] = 0;
@@ -355,6 +397,10 @@ void setSnarePattern( int patternValue ) {
             }
             if( random(1024) < snareRandomness ){  // applies randomness to each beat.
                 sPattern[i] = !( sPattern[i] );  
+            }
+            // add random closed hh
+            if( random( 512 ) < snareRandomness ){
+                sPattern[i] = sPattern[i] + 2;
             }
         }
     }
