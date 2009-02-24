@@ -239,6 +239,7 @@ void loop() {
         
         // poll programming inputs
         int progReadValue = analogRead( progPot );
+        
         if ( digitalRead( progRandomSW ) ){   // set randomness
             if( pKick ){
                 kickRandomness = progReadValue;
@@ -253,8 +254,36 @@ void loop() {
                 cymbalsRandomness = progReadValue;
             }
         }
-        /// progVolumeSW 
-        /// progPanSW 
+        
+        if ( digitalRead( progVolumeSW ) ){   // set volume level to 0-127
+            if( pKick ){
+                kickVolume = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pSnare ){
+                snareVolume = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pToms ){
+                tomsVolume = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pCymbals ){
+                cymbalsVolume = ( ( progReadValue / 1024 ) * 127 );
+            }
+        }
+
+        if ( digitalRead( progPanSW ) ){   // set pan level to 0-127
+            if( pKick ){
+                kickPan = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pSnare ){
+                snarePan = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pToms ){
+                tomsPan = ( ( progReadValue / 1024 ) * 127 );
+            }
+            if( pCymbals ){
+                cymbalsPan = ( ( progReadValue / 1024 ) * 127 );
+            }
+        }
     
         // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
         tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
