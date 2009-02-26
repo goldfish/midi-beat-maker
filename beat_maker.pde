@@ -168,8 +168,8 @@ void loop() {
         // play beats for current step
         if( kPattern[ currentStep ] ){
             midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
-            delay( 20 );
-            midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
+            //delay( 20 );
+            //midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
         }
         if( sPattern[ currentStep ] ){
             // 0 - no drum
@@ -181,32 +181,32 @@ void loop() {
             switch( sPattern[ currentStep ] ){
                 case 1:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-                    delay( 20 );
-                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    //delay( 20 );
+                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
                     break;
                 case 2:
                     midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
-                    delay( 20 );
-                    midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
+                    //delay( 20 );
+                    //midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
                     break;
                 case 3:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
                     midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
-                    delay( 20 );
-                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
-                    midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
+                    //delay( 20 );
+                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    //midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
                     break;
                 case 4:
                     midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
-                    delay( 20 );
-                    midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
+                    //delay( 20 );
+                    //midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
                     break;
                 case 5:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
                     midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
-                    delay( 20 );
-                    midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
-                    midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
+                    //delay( 20 );
+                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
+                    //midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
                     break;
                 default:
                     break;
