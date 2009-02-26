@@ -99,10 +99,10 @@ int cymbalsPan = 64;
 
 void setup() {
     //  Set MIDI baud rate:
-    //Serial.begin( 31250 );
+    Serial.begin( 31250 );
   
     //  Set serial link baud rate - for testing
-    Serial.begin( 9600 );
+    //Serial.begin( 9600 );
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
