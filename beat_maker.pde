@@ -214,6 +214,28 @@ void loop() {
         }
         if( tPattern[ currentStep ] ){
             // toms pattern
+            switch( tPattern[ currentStep ] ){
+                case 1:
+                    midiSend( NOTEON, TOM1, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 2:
+                    midiSend( NOTEON, TOM2, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 3:
+                    midiSend( NOTEON, TOM3, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 4:
+                    midiSend( NOTEON, TOM4, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 5:
+                    midiSend( NOTEON, TOM5, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 6:
+                    midiSend( NOTEON, TOM6, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                default:
+                    break;
+            }
         }
         if( cPattern[ currentStep ] ){
             // cymbals pattern
@@ -246,6 +268,12 @@ void loop() {
         if( abs( snarePotRead - snarePotValue ) > 10 ){
             snarePotValue = snarePotRead;
             setSnarePattern( snarePotValue );
+        }
+        
+        int tomsPotRead = analogRead( tomsPot );
+        if( abs( tomsPotRead - tomsPotValue ) > 10 ){
+            tomsPotValue = tomsPotRead;
+            setTomsPattern( tomsPotValue );
         }
 
         // poll programming keys
@@ -424,6 +452,54 @@ void setSnarePattern( int patternValue ) {
             sPattern[ i ] = 1;
             if( random(1024) < snareRandomness ){  // applies randomness to each beat.
                 sPattern[i] = !( sPattern[i] );  
+            }
+        }
+    }
+}
+
+//  Set the Toms pattern
+void setTomsPattern( int patternValue ) {
+    // 1 - tom1
+    // 2 - tom2
+    // 3 - tom3
+    // 4 - tom4
+    // 5 - tom5
+    // 6 - tom6
+    if( patternValue < 30 ){ // empty pattern
+        for( int i = 0; i < 32; i++ ){
+            tPattern[ i ] = 0;
+        }
+    }
+    else if( patternValue < 100 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%8 == 0 ){ // hit every 8th beat
+                tPattern[i] = random(1,3);
+            }
+            else{
+                tPattern[i] = 0;
+            }
+        }
+    }
+    else if( patternValue < 300 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                tPattern[i] = random(1,5);
+            }
+            else{
+                tPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
+                    tPattern[i] = random(0,7);  
+                }
+            }
+        }
+    }
+    else{ // full pattern - hit on every beat
+        for( int i = 0; i < 32; i++ ){
+            tPattern[ i ] = 1;
+            if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
+                tPattern[i] = random(0,7);  
             }
         }
     }
