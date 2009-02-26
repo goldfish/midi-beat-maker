@@ -168,8 +168,6 @@ void loop() {
         // play beats for current step
         if( kPattern[ currentStep ] ){
             midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
-            //delay( 20 );
-            //midiSend( NOTEOFF, KICK, 0x00 ); // note off channel 10
         }
         if( sPattern[ currentStep ] ){
             // 0 - no drum
@@ -181,32 +179,20 @@ void loop() {
             switch( sPattern[ currentStep ] ){
                 case 1:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-                    //delay( 20 );
-                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
                     break;
                 case 2:
                     midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
-                    //delay( 20 );
-                    //midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
                     break;
                 case 3:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
                     midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
-                    //delay( 20 );
-                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
-                    //midiSend( NOTEOFF, HHCLOSED, 0x00 ); // note off channel 10
                     break;
                 case 4:
                     midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
-                    //delay( 20 );
-                    //midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
                     break;
                 case 5:
                     midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
                     midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
-                    //delay( 20 );
-                    //midiSend( NOTEOFF, SNARE, 0x00 ); // note off channel 10
-                    //midiSend( NOTEOFF, HHOPEN, 0x00 ); // note off channel 10
                     break;
                 default:
                     break;
@@ -214,6 +200,7 @@ void loop() {
         }
         if( tPattern[ currentStep ] ){
             // toms pattern
+            // 1-6 toms low to high
             switch( tPattern[ currentStep ] ){
                 case 1:
                     midiSend( NOTEON, TOM1, 0x64 ); // note on channel 10, velocity 100
@@ -239,6 +226,26 @@ void loop() {
         }
         if( cPattern[ currentStep ] ){
             // cymbals pattern
+            // 1-5 cymbals
+            switch( cPattern[ currentStep ] ){
+                case 1:
+                    midiSend( NOTEON, CRASH1, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 2:
+                    midiSend( NOTEON, CRASH2, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 3:
+                    midiSend( NOTEON, RIDE1, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 4:
+                    midiSend( NOTEON, RIDE2, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                case 5:
+                    midiSend( NOTEON, SPLASH, 0x64 ); // note on channel 10, velocity 100
+                    break;
+                default:
+                    break;
+            }
         }
         
         // increment step
@@ -274,6 +281,12 @@ void loop() {
         if( abs( tomsPotRead - tomsPotValue ) > 10 ){
             tomsPotValue = tomsPotRead;
             setTomsPattern( tomsPotValue );
+        }
+        
+        int cymbalsPotRead = analogRead( cymbalsPot );
+        if( abs( cymbalsPotRead - cymbalsPotValue ) > 10 ){
+            cymbalsPotValue = cymbalsPotRead;
+            setCymbalsPattern( cymbalsPotValue );
         }
 
         // poll programming keys
@@ -500,6 +513,53 @@ void setTomsPattern( int patternValue ) {
             tPattern[ i ] = 1;
             if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
                 tPattern[i] = random(0,7);  
+            }
+        }
+    }
+}
+
+//  Set the Cymbals pattern
+void setCymbalsPattern( int patternValue ) {
+    // 1- CRASH1 (0x31)
+    // 2- CRASH2 (0x39)
+    // 3- RIDE1 (0x33)
+    // 4- RIDE2 (0x3B)
+    // 5- SPLASH (0x37)
+    if( patternValue < 30 ){ // empty pattern
+        for( int i = 0; i < 32; i++ ){
+            cPattern[ i ] = 0;
+        }
+    }
+    else if( patternValue < 100 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%8 == 0 ){ // hit every 8th beat
+                cPattern[i] = random(3,6);
+            }
+            else{
+                cPattern[i] = 0;
+            }
+        }
+    }
+    else if( patternValue < 300 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                cPattern[i] = random(2,6);
+            }
+            else{
+                cPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
+                    cPattern[i] = random(0,6);  
+                }
+            }
+        }
+    }
+    else{ // full pattern - hit on every beat
+        for( int i = 0; i < 32; i++ ){
+            cPattern[ i ] = 5;
+            if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
+                cPattern[i] = random(0,6);  
             }
         }
     }
