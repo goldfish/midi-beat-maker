@@ -85,17 +85,17 @@ byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 int kickRandomness = 0; 
-int kickVolume = 100;        // volume and pan are midi values 0-127
-int kickPan = 64;
+byte kickVolume = 100;        // volume and pan are midi values 0-127
+byte kickPan = 64;
 int snareRandomness = 0;
-int snareVolume = 100;
-int snarePan = 64;
+byte snareVolume = 100;
+byte snarePan = 64;
 int tomsRandomness = 0;
-int tomsVolume = 100;
-int tomsPan = 64;
+byte tomsVolume = 100;
+byte tomsPan = 64;
 int cymbalsRandomness = 0;
-int cymbalsVolume = 100;
-int cymbalsPan = 64;
+byte cymbalsVolume = 100;
+byte cymbalsPan = 64;
 
 void setup() {
     //  Set MIDI baud rate:
@@ -167,7 +167,7 @@ void loop() {
                 
         // play beats for current step
         if( kPattern[ currentStep ] ){
-            midiSend( NOTEON, KICK, 0x64 ); // note on channel 10, velocity 100
+            midiSend( NOTEON, KICK, kickVolume );
         }
         if( sPattern[ currentStep ] ){
             // 0 - no drum
@@ -178,21 +178,21 @@ void loop() {
             // 5 - snare and open hh
             switch( sPattern[ currentStep ] ){
                 case 1:
-                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, SNARE, snareVolume );
                     break;
                 case 2:
-                    midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, HHCLOSED, snareVolume ); 
                     break;
                 case 3:
-                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-                    midiSend( NOTEON, HHCLOSED, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, SNARE, snareVolume );
+                    midiSend( NOTEON, HHCLOSED, snareVolume );
                     break;
                 case 4:
-                    midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, HHOPEN, snareVolume );
                     break;
                 case 5:
-                    midiSend( NOTEON, SNARE, 0x64 ); // note on channel 10, velocity 100
-                    midiSend( NOTEON, HHOPEN, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, SNARE, snareVolume );
+                    midiSend( NOTEON, HHOPEN, snareVolume );
                     break;
                 default:
                     break;
@@ -203,22 +203,22 @@ void loop() {
             // 1-6 toms low to high
             switch( tPattern[ currentStep ] ){
                 case 1:
-                    midiSend( NOTEON, TOM1, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM1, tomsVolume );
                     break;
                 case 2:
-                    midiSend( NOTEON, TOM2, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM2, tomsVolume );
                     break;
                 case 3:
-                    midiSend( NOTEON, TOM3, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM3, tomsVolume );
                     break;
                 case 4:
-                    midiSend( NOTEON, TOM4, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM4, tomsVolume );
                     break;
                 case 5:
-                    midiSend( NOTEON, TOM5, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM5, tomsVolume );
                     break;
                 case 6:
-                    midiSend( NOTEON, TOM6, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, TOM6, tomsVolume );
                     break;
                 default:
                     break;
@@ -229,19 +229,19 @@ void loop() {
             // 1-5 cymbals
             switch( cPattern[ currentStep ] ){
                 case 1:
-                    midiSend( NOTEON, CRASH1, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, CRASH1, cymbalsVolume );
                     break;
                 case 2:
-                    midiSend( NOTEON, CRASH2, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, CRASH2, cymbalsVolume );
                     break;
                 case 3:
-                    midiSend( NOTEON, RIDE1, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, RIDE1, cymbalsVolume );
                     break;
                 case 4:
-                    midiSend( NOTEON, RIDE2, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, RIDE2, cymbalsVolume );
                     break;
                 case 5:
-                    midiSend( NOTEON, SPLASH, 0x64 ); // note on channel 10, velocity 100
+                    midiSend( NOTEON, SPLASH, cymbalsVolume );
                     break;
                 default:
                     break;
@@ -316,6 +316,7 @@ void loop() {
         
         // poll programming inputs
         int progReadValue = analogRead( progPot );
+        int prog128Value = ( progReadValue * 0.124  );
         
         if ( digitalRead( progRandomSW ) ){   // set randomness
             if( pKick ){
@@ -334,31 +335,31 @@ void loop() {
         
         if ( digitalRead( progVolumeSW ) ){   // set volume level to 0-127
             if( pKick ){
-                kickVolume = ( ( progReadValue / 1024 ) * 127 );
+                kickVolume = prog128Value;
             }
             if( pSnare ){
-                snareVolume = ( ( progReadValue / 1024 ) * 127 );
+                snareVolume = prog128Value;
             }
             if( pToms ){
-                tomsVolume = ( ( progReadValue / 1024 ) * 127 );
+                tomsVolume = prog128Value;
             }
             if( pCymbals ){
-                cymbalsVolume = ( ( progReadValue / 1024 ) * 127 );
+                cymbalsVolume = prog128Value;
             }
         }
 
         if ( digitalRead( progPanSW ) ){   // set pan level to 0-127
             if( pKick ){
-                kickPan = ( ( progReadValue / 1024 ) * 127 );
+                kickPan = prog128Value;
             }
             if( pSnare ){
-                snarePan = ( ( progReadValue / 1024 ) * 127 );
+                snarePan = prog128Value;
             }
             if( pToms ){
-                tomsPan = ( ( progReadValue / 1024 ) * 127 );
+                tomsPan = prog128Value;
             }
             if( pCymbals ){
-                cymbalsPan = ( ( progReadValue / 1024 ) * 127 );
+                cymbalsPan = prog128Value;
             }
         }
     
