@@ -94,10 +94,9 @@ int cymbalsRandomness = 0;
 byte cymbalsVolume = 100;
 
 void setup() {
-    //  Set MIDI baud rate:
+    //  Set serial rate to 31250 for MIDI
+    //  Set serial rate to 9600 for testing
     //Serial.begin( 31250 );
-  
-    //  Set serial link baud rate - for testing
     Serial.begin( 9600 );
     
     // set up led output pins
