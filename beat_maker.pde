@@ -35,18 +35,18 @@
 #define cymbalsPot (5)
 
 // define digital i/o pins
-#define pKickLED (5)
-#define pKickSW (2)
-#define pSnareLED (9)
-#define pSnareSW (3)
-#define pTomsLED (10)
-#define pTomsSW (6)
-#define pCymbalsLED (11)
-#define pCymbalsSW (8)
-#define progVolumeSW (4)
-#define progRandomSW (7)
-#define progPanSW (12)
-#define tempoLED (13)
+#define pKickLED (10)
+#define pKickSW (5)
+#define pSnareLED (8)
+#define pSnareSW (4)
+#define pTomsLED (9)
+#define pTomsSW (3)
+#define pCymbalsLED (7)
+#define pCymbalsSW (2)
+#define progVolumeSW (12)
+#define progRandomSW (11)
+#define progPatSW (13)
+#define tempoLED (6)
 
 // define remaining global constants
 #define minTempo (1100)
@@ -61,7 +61,7 @@ boolean pToms;
 boolean pCymbals;
 boolean progVolume;
 boolean progRandom;
-boolean progPan;
+boolean progPat;
 
 // initial values of pattern pots. set at 1200 so that the polling routine will kick in.
 int kickPotValue = 1200;
@@ -85,24 +85,20 @@ byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 int kickRandomness = 0; 
-byte kickVolume = 100;        // volume and pan are midi values 0-127
-byte kickPan = 64;
+byte kickVolume = 100;        // volume midi values 0-127
 int snareRandomness = 0;
 byte snareVolume = 100;
-byte snarePan = 64;
 int tomsRandomness = 0;
 byte tomsVolume = 100;
-byte tomsPan = 64;
 int cymbalsRandomness = 0;
 byte cymbalsVolume = 100;
-byte cymbalsPan = 64;
 
 void setup() {
     //  Set MIDI baud rate:
-    Serial.begin( 31250 );
+    //Serial.begin( 31250 );
   
     //  Set serial link baud rate - for testing
-    //Serial.begin( 9600 );
+    Serial.begin( 9600 );
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
@@ -142,8 +138,8 @@ void setup() {
     digitalWrite( progVolumeSW, HIGH );  
     pinMode( progRandomSW, INPUT );
     digitalWrite( progRandomSW, HIGH ); 
-    pinMode( progPanSW, INPUT );
-    digitalWrite( progPanSW, HIGH ); 
+    pinMode( progPatSW, INPUT );
+    digitalWrite( progPatSW, HIGH ); 
     
     // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
     tempo = 2 * ( minTempo - analogRead( tempoPot ) );
@@ -308,7 +304,7 @@ void loop() {
             digitalWrite( pTomsLED, pToms );
         }
         
-        int pCymbalsRead = digitalRead( pCymbals );
+        int pCymbalsRead = digitalRead( pCymbalsSW );
         if( pCymbals != pCymbalsRead ){
             pCymbals = pCymbalsRead;
             digitalWrite( pCymbalsLED, pCymbals );
@@ -348,18 +344,18 @@ void loop() {
             }
         }
 
-        if ( digitalRead( progPanSW ) ){   // set pan level to 0-127
+        if ( digitalRead( progPatSW ) ){   // set beats into the pattern
             if( pKick ){
-                kickPan = prog128Value;
+                //
             }
             if( pSnare ){
-                snarePan = prog128Value;
+                //
             }
             if( pToms ){
-                tomsPan = prog128Value;
+                //
             }
             if( pCymbals ){
-                cymbalsPan = prog128Value;
+                //
             }
         }
     
@@ -571,10 +567,4 @@ void midiSend(char status, char data1, char data2) {
     Serial.print(status, BYTE); // type of message usually noteon/off and channel
     Serial.print(data1, BYTE);  // usually note
     Serial.print(data2, BYTE);  // usually velocity
-}
-
-//  Send a two byte midi message  
-void midiProg(char status, int data ) {
-    Serial.print(status, BYTE);
-    Serial.print(data, BYTE);
 }
