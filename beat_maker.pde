@@ -96,8 +96,8 @@ byte cymbalsVolume = 100;
 void setup() {
     //  Set serial rate to 31250 for MIDI
     //  Set serial rate to 9600 for testing
-    //Serial.begin( 31250 );
-    Serial.begin( 9600 );
+    Serial.begin( 31250 );
+    //Serial.begin( 9600 );
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
@@ -313,7 +313,7 @@ void loop() {
         int progReadValue = analogRead( progPot );
         int prog128Value = ( progReadValue * 0.124  );
         
-        if ( digitalRead( progRandomSW ) ){   // set randomness
+        if ( !(digitalRead( progRandomSW )) ){   // set randomness
             if( pKick ){
                 kickRandomness = progReadValue;
             }
@@ -328,7 +328,7 @@ void loop() {
             }
         }
         
-        if ( digitalRead( progVolumeSW ) ){   // set volume level to 0-127
+        if ( !(digitalRead( progVolumeSW )) ){   // set volume level to 0-127
             if( pKick ){
                 kickVolume = prog128Value;
             }
@@ -343,7 +343,7 @@ void loop() {
             }
         }
 
-        if ( digitalRead( progPatSW ) ){   // set beats into the pattern
+        if ( !(digitalRead( progPatSW )) ){   // set beats into the pattern
             if( pKick ){
                 //
             }
