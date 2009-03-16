@@ -532,12 +532,12 @@ void setTomsPattern( int patternValue ) {
     // 4 - tom4
     // 5 - tom5
     // 6 - tom6
-    if( patternValue < 30 ){ // empty pattern
+    if( patternValue < 10 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             tPattern[ i ] = 0;
         }
     }
-    else if( patternValue < 100 ){
+    else if( patternValue < 40 ){
         for( int i = 0; i < 32; i++ ){
             if( i%8 == 0 ){ // hit every 8th beat
                 tPattern[i] = random(1,3);
@@ -547,7 +547,36 @@ void setTomsPattern( int patternValue ) {
             }
         }
     }
-    else if( patternValue < 300 ){
+    else if( patternValue < 145 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                tPattern[i] = random(1,5);
+            }
+            else{
+                tPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
+                    tPattern[i] = random(0,7);  
+                }
+            }
+        }
+    }
+    else if( patternValue < 480 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                tPattern[i] = random(1,5);
+            }
+            else{
+                tPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
+                    tPattern[i] = random(0,7);  
+                }
+            }
+        }
+    }else if( patternValue < 900 ){
         for( int i = 0; i < 32; i++ ){
             if( i%4 == 0 ){ // hit every 4th beat
                 tPattern[i] = random(1,5);
@@ -579,12 +608,12 @@ void setCymbalsPattern( int patternValue ) {
     // 3- RIDE1 (0x33)
     // 4- RIDE2 (0x3B)
     // 5- SPLASH (0x37)
-    if( patternValue < 30 ){ // empty pattern
+    if( patternValue < 10 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             cPattern[ i ] = 0;
         }
     }
-    else if( patternValue < 100 ){
+    else if( patternValue < 40 ){
         for( int i = 0; i < 32; i++ ){
             if( i%8 == 0 ){ // hit every 8th beat
                 cPattern[i] = random(3,6);
@@ -594,7 +623,37 @@ void setCymbalsPattern( int patternValue ) {
             }
         }
     }
-    else if( patternValue < 300 ){
+    else if( patternValue < 145 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                cPattern[i] = random(2,6);
+            }
+            else{
+                cPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
+                    cPattern[i] = random(0,6);  
+                }
+            }
+        }
+    }
+    else if( patternValue < 480 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                cPattern[i] = random(2,6);
+            }
+            else{
+                cPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
+                    cPattern[i] = random(0,6);  
+                }
+            }
+        }
+    }
+    else if( patternValue < 900 ){
         for( int i = 0; i < 32; i++ ){
             if( i%4 == 0 ){ // hit every 4th beat
                 cPattern[i] = random(2,6);
