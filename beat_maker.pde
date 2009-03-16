@@ -447,12 +447,12 @@ void setSnarePattern( int patternValue ) {
     // 3 - snare and close hh
     // 4 - open hh
     // 5 - snare and open hh
-    if( patternValue < 30 ){ // empty pattern
+    if( patternValue < 10 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             sPattern[ i ] = 0;
         }
     }
-    else if( patternValue < 100 ){
+    else if( patternValue < 40 ){
         for( int i = 0; i < 32; i++ ){
             if( i%8 == 0 ){ // hit every 8th beat
                 sPattern[i] = 1;
@@ -469,13 +469,43 @@ void setSnarePattern( int patternValue ) {
             }
         }
     }
-    else if( patternValue < 300 ){
+    else if( patternValue < 145 ){
         for( int i = 0; i < 32; i++ ){
             if( i%4 == 0 ){ // hit every 4th beat
                 sPattern[i] = 1;
             }
             else{
                 sPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
+                    sPattern[i] = !( sPattern[i] );  
+                }
+            }
+        }
+    }
+    else if( patternValue < 480 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                sPattern[i] = 1;
+            }
+            else{
+                sPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
+                    sPattern[i] = !( sPattern[i] );  
+                }
+            }
+        }
+    }
+    else if( patternValue < 900 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // don't hit every 4th beat
+                sPattern[i] = 0;
+            }
+            else{
+                sPattern[i] = 1;
             }
             if( i > 23 ){  // only randomise the last 8 beats
                 if( random(1024) < snareRandomness ){  // applies randomness to each beat.
