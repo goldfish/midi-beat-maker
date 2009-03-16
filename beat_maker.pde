@@ -261,25 +261,25 @@ void loop() {
         
         // poll pattern inputs
         int kickPotRead = analogRead( kickPot );
-        if( abs( kickPotRead - kickPotValue ) > 10 ){
+        if( abs( kickPotRead - kickPotValue ) > 3 ){
             kickPotValue = kickPotRead;
             setKickPattern( kickPotValue );
         }
         
         int snarePotRead = analogRead( snarePot );
-        if( abs( snarePotRead - snarePotValue ) > 10 ){
+        if( abs( snarePotRead - snarePotValue ) > 3 ){
             snarePotValue = snarePotRead;
             setSnarePattern( snarePotValue );
         }
         
         int tomsPotRead = analogRead( tomsPot );
-        if( abs( tomsPotRead - tomsPotValue ) > 10 ){
+        if( abs( tomsPotRead - tomsPotValue ) > 3 ){
             tomsPotValue = tomsPotRead;
             setTomsPattern( tomsPotValue );
         }
         
         int cymbalsPotRead = analogRead( cymbalsPot );
-        if( abs( cymbalsPotRead - cymbalsPotValue ) > 10 ){
+        if( abs( cymbalsPotRead - cymbalsPotValue ) > 3 ){
             cymbalsPotValue = cymbalsPotRead;
             setCymbalsPattern( cymbalsPotValue );
         }
@@ -368,12 +368,12 @@ void loop() {
 
 //  Set the kick pattern
 void setKickPattern( int patternValue ) {
-    if( patternValue < 30 ){ // empty pattern
+    if( patternValue < 10 ){ // empty pattern
         for( int i = 0; i < 32; i++ ){
             kPattern[ i ] = 0;
         }
     }
-    else if( patternValue < 100 ){
+    else if( patternValue < 45 ){
         for( int i = 0; i < 32; i++ ){
             if( i%8 == 0 ){ // hit every 8th beat
                 kPattern[i] = 1;
@@ -386,13 +386,41 @@ void setKickPattern( int patternValue ) {
             }
         }
     }
-    else if( patternValue < 300 ){
+    else if( patternValue < 145 ){
         for( int i = 0; i < 32; i++ ){
             if( i%4 == 0 ){ // hit every 4th beat
                 kPattern[i] = 1;
             }
             else{
                 kPattern[i] = 0;
+            }
+            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
+                kPattern[i] = !( kPattern[i] );  
+            }
+        }
+    }
+    else if( patternValue < 480 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // hit every 4th beat
+                kPattern[i] = 1;
+            }
+            else{
+                kPattern[i] = 0;
+            }
+            if( i > 23 ){  // only randomise the last 8 beats
+                if( random(1024) < kickRandomness ){  // applies randomness to each beat.
+                    kPattern[i] = !( kPattern[i] );  
+                }
+            }
+        }
+    }
+    else if( patternValue < 900 ){
+        for( int i = 0; i < 32; i++ ){
+            if( i%4 == 0 ){ // don't hit every 4th beat
+                kPattern[i] = 0;
+            }
+            else{
+                kPattern[i] = 1;
             }
             if( i > 23 ){  // only randomise the last 8 beats
                 if( random(1024) < kickRandomness ){  // applies randomness to each beat.
