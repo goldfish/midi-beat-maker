@@ -29,52 +29,48 @@
 // define analog input pins
 #define tempoPot (0)
 #define progPot (1)
-#define kickPot (2)
-#define snarePot (3)
-#define tomsPot (4)
-#define cymbalsPot (5)
+#define slider1 (2)
+#define slider2 (3)
+#define slider3 (4)
+#define slider4 (5)
 
 // define digital i/o pins
-#define pKickLED (10)
-#define pKickSW (5)
-#define pSnareLED (8)
-#define pSnareSW (4)
-#define pTomsLED (9)
-#define pTomsSW (3)
-#define pCymbalsLED (7)
-#define pCymbalsSW (2)
+#define chan1LED (10)
+#define chan1SW (5)
+#define chan2LED (8)
+#define chan2SW (4)
+#define chan3LED (9)
+#define chan3SW (3)
+#define chan4LED (7)
+#define chan4SW (2)
 #define progVolumeSW (12)
 #define progRandomSW (11)
 #define progPatSW (13)
 #define tempoLED (6)
 
-// define remaining global constants
-#define minTempo (1100)
-
 // define Global variables
 
 // stored value of programming switches. these get defined in setup()
-boolean pKick;
-boolean pSnare;
-boolean pToms;
-boolean pCymbals;
+boolean chan1;
+boolean chan2;
+boolean chan3;
+boolean chan4;
 boolean progVolume;
 boolean progRandom;
 boolean progPat;
 
 // initial values of pattern pots. set at 1200 so that the polling routine will kick in.
-int kickPotValue = 1200;
-int snarePotValue = 1200;
-int tomsPotValue = 1200;
-int cymbalsPotValue = 1200;
+int slider1Value = 1200;
+int slider2Value = 1200;
+int slider3Value = 1200;
+int slider4Value = 1200;
 
 // variables to store and control timing
-int tempo = minTempo;  // int tempo doesn't really mean the tempo. It is the length of the pauses between beats.
+int stepDelay;  // the length of the pauses between beats.
 unsigned long nextBeat;    // trigger time for next beat
-unsigned long tempoCheck;  // used to monitor tempo pot
+unsigned long stepDelayCheck;  // used to monitor tempo pot
 unsigned long nextPoll;    // trigger time for next input poll
 unsigned long stepTime;    // stores the time at the start of the loop(). Eliminates multiple millis() calls.
-unsigned long tempoLEDoff; // stores the trigger time for tempo LED to turn off
 
 // variables related to drum patterns
 int currentStep = 0;
@@ -83,14 +79,10 @@ byte snareP[] = { B00000000, B00000000, B00000000, B00000000 };
 byte hhopenP[] = { B00000000, B00000000, B00000000, B00000000 };
 byte hhclosedP[] = { B00000000, B00000000, B00000000, B00000000 };
 
-int kickRandomness = 0; 
 byte kickVolume = 100;        // volume midi values 0-127
-int snareRandomness = 0;
 byte snareVolume = 100;
-int tomsRandomness = 0;
-byte tomsVolume = 100;
-int cymbalsRandomness = 0;
-byte cymbalsVolume = 100;
+byte hhopenVolume = 100;
+byte hhclosedVolume = 100;
 
 void setup() {
     //  Set serial rate to 31250 for MIDI
@@ -100,38 +92,38 @@ void setup() {
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
-    pinMode( pKickLED, OUTPUT );
-    pinMode( pSnareLED, OUTPUT );
-    pinMode( pTomsLED, OUTPUT );
-    pinMode( pCymbalsLED, OUTPUT );
+    pinMode( chan1LED, OUTPUT );
+    pinMode( chan2LED, OUTPUT );
+    pinMode( chan3LED, OUTPUT );
+    pinMode( chan4LED, OUTPUT );
     
     // turn on all leds and hold them high for 2 sec
     digitalWrite( tempoLED, HIGH );  
-    digitalWrite( pKickLED, HIGH );
-    digitalWrite( pSnareLED, HIGH );
-    digitalWrite( pTomsLED, HIGH );
-    digitalWrite( pCymbalsLED, HIGH );
+    digitalWrite( chan1LED, HIGH );
+    digitalWrite( chan2LED, HIGH );
+    digitalWrite( chan3LED, HIGH );
+    digitalWrite( chan4LED, HIGH );
     delay( 2000 );
 
     // read programming switches and set leds correctly
-    pKick = digitalRead( pKickSW );
-    digitalWrite( pKickLED, pKick );
-    pSnare = digitalRead( pSnareSW );
-    digitalWrite( pSnareLED, pSnare );
-    pToms = digitalRead( pTomsSW );
-    digitalWrite( pTomsLED, pToms );
-    pCymbals = digitalRead( pCymbals );
-    digitalWrite( pCymbalsLED, pCymbals );
+    chan1 = digitalRead( chan1SW );
+    digitalWrite( chan1LED, chan1 );
+    chan2 = digitalRead( chan2SW );
+    digitalWrite( chan2LED, chan2 );
+    chan3 = digitalRead( chan3SW );
+    digitalWrite( chan3LED, chan3 );
+    chan4 = digitalRead( chan4SW );
+    digitalWrite( chan4LED, chan4 );
     
     // set up input pins. Set mode as INPUT, and then use digtalWrite HIGH to turn on the internal pull-up resistors.
-    pinMode( pKickSW, INPUT );
-    digitalWrite( pKickSW, HIGH ); 
-    pinMode( pSnareSW, INPUT );
-    digitalWrite( pSnareSW, HIGH ); 
-    pinMode( pTomsSW, INPUT );
-    digitalWrite( pTomsSW, HIGH ); 
-    pinMode( pCymbalsSW, INPUT );
-    digitalWrite( pCymbalsSW, HIGH ); 
+    pinMode( chan1SW, INPUT );
+    digitalWrite( chan1SW, HIGH ); 
+    pinMode( chan2SW, INPUT );
+    digitalWrite( chan2SW, HIGH ); 
+    pinMode( chan3SW, INPUT );
+    digitalWrite( chan3SW, HIGH ); 
+    pinMode( chan4SW, INPUT );
+    digitalWrite( chan4SW, HIGH ); 
     pinMode( progVolumeSW, INPUT );
     digitalWrite( progVolumeSW, HIGH );  
     pinMode( progRandomSW, INPUT );
@@ -139,8 +131,8 @@ void setup() {
     pinMode( progPatSW, INPUT );
     digitalWrite( progPatSW, HIGH ); 
     
-    // set tempo from tempoPot <-- yeah, it looks weird, but it gives a good range
-    tempo = 2 * ( minTempo - analogRead( tempoPot ) );
+    // set stepDelay from tempoPot <-- yeah, it looks weird, but it gives a good range
+    stepDelay = checkDelay();
     
     // set tempo trigger for next beat and next poll
     nextBeat = millis();
@@ -154,10 +146,7 @@ void loop() {
     stepTime = millis();
     if( stepTime > nextBeat ) {
         // set time for next beat
-        nextBeat = stepTime + tempo;
-        
-        digitalWrite( tempoLED, HIGH );
-        tempoLEDoff = stepTime + 125;
+        nextBeat = stepTime + stepDelay;
                 
         // play beats for current step
         int patternByte = (int)( currentStep / 8 );
@@ -178,7 +167,7 @@ void loop() {
     }
     
     if( stepTime > nextPoll ){
-        // set time for next beat
+        // set time for next poll
         nextPoll = pollInputs( stepTime );
     }
 }  
@@ -210,53 +199,53 @@ void setCymbalsPattern( int patternValue ) {
 
 unsigned long pollInputs( unsigned long pollTime ){
     // poll pattern inputs
-    int kickPotRead = analogRead( kickPot );
-    if( abs( kickPotRead - kickPotValue ) > 3 ){
-        kickPotValue = kickPotRead;
-        setKickPattern( kickPotValue );
+    int slider1Read = analogRead( slider1 );
+    if( abs( slider1Read - slider1Value ) > 3 ){
+        slider1Value = slider1Read;
+        setKickPattern( slider1Value );
     }
     
-    int snarePotRead = analogRead( snarePot );
-    if( abs( snarePotRead - snarePotValue ) > 3 ){
-        snarePotValue = snarePotRead;
-        setSnarePattern( snarePotValue );
+    int slider2Read = analogRead( slider2 );
+    if( abs( slider2Read - slider2Value ) > 3 ){
+        slider2Value = slider2Read;
+        setSnarePattern( slider2Value );
     }
     
-    int tomsPotRead = analogRead( tomsPot );
-    if( abs( tomsPotRead - tomsPotValue ) > 3 ){
-        tomsPotValue = tomsPotRead;
-        setTomsPattern( tomsPotValue );
+    int slider3Read = analogRead( slider3 );
+    if( abs( slider3Read - slider3Value ) > 3 ){
+        slider3Value = slider3Read;
+        setTomsPattern( slider3Value );
     }
     
-    int cymbalsPotRead = analogRead( cymbalsPot );
-    if( abs( cymbalsPotRead - cymbalsPotValue ) > 3 ){
-        cymbalsPotValue = cymbalsPotRead;
-        setCymbalsPattern( cymbalsPotValue );
+    int slider4Read = analogRead( slider4 );
+    if( abs( slider4Read - slider4Value ) > 3 ){
+        slider4Value = slider4Read;
+        setCymbalsPattern( slider4Value );
     }
 
     // poll programming keys
-    int pKickRead = digitalRead( pKickSW );
-    if( pKick != pKickRead ){
-        pKick = pKickRead;
-        digitalWrite( pKickLED, pKick );
+    int chan1Read = digitalRead( chan1SW );
+    if( chan1 != chan1Read ){
+        chan1 = chan1Read;
+        digitalWrite( chan1LED, chan1 );
     }
 
-    int pSnareRead = digitalRead( pSnareSW );
-    if( pSnare != pSnareRead ){
-        pSnare = pSnareRead;
-        digitalWrite( pSnareLED, pSnare );
+    int chan2Read = digitalRead( chan2SW );
+    if( chan2 != chan2Read ){
+        chan2 = chan2Read;
+        digitalWrite( chan2LED, chan2 );
     }
     
-    int pTomsRead = digitalRead( pTomsSW );
-    if( pToms != pTomsRead ){
-        pToms = pTomsRead;
-        digitalWrite( pTomsLED, pToms );
+    int chan3Read = digitalRead( chan3SW );
+    if( chan3 != chan3Read ){
+        chan3 = chan3Read;
+        digitalWrite( chan3LED, chan3 );
     }
     
-    int pCymbalsRead = digitalRead( pCymbalsSW );
-    if( pCymbals != pCymbalsRead ){
-        pCymbals = pCymbalsRead;
-        digitalWrite( pCymbalsLED, pCymbals );
+    int chan4Read = digitalRead( chan4SW );
+    if( chan4 != chan4Read ){
+        chan4 = chan4Read;
+        digitalWrite( chan4LED, chan4 );
     }
     
     // poll programming inputs
@@ -264,57 +253,61 @@ unsigned long pollInputs( unsigned long pollTime ){
     int prog128Value = ( progReadValue * 0.124  );
     
     if ( !(digitalRead( progRandomSW )) ){   // set randomness
-        if( pKick ){
-            kickRandomness = progReadValue;
+        if( chan1 ){
+            //kickRandomness = progReadValue;
         }
-        if( pSnare ){
-            snareRandomness = progReadValue;
+        if( chan2 ){
+            //snareRandomness = progReadValue;
         }
-        if( pToms ){
-            tomsRandomness = progReadValue;
+        if( chan3 ){
+            //tomsRandomness = progReadValue;
         }
-        if( pCymbals ){
-            cymbalsRandomness = progReadValue;
+        if( chan4 ){
+            //cymbalsRandomness = progReadValue;
         }
     }
     
     if ( !(digitalRead( progVolumeSW )) ){   // set volume level to 0-127
-        if( pKick ){
+        if( chan1 ){
             kickVolume = prog128Value;
         }
-        if( pSnare ){
+        if( chan2 ){
             snareVolume = prog128Value;
         }
-        if( pToms ){
-            tomsVolume = prog128Value;
+        if( chan3 ){
+            //tomsVolume = prog128Value;
         }
-        if( pCymbals ){
-            cymbalsVolume = prog128Value;
+        if( chan4 ){
+            //cymbalsVolume = prog128Value;
         }
     }
 
     if ( !(digitalRead( progPatSW )) ){   // set beats into the pattern
-        if( pKick ){
+        if( chan1 ){
             //
         }
-        if( pSnare ){
+        if( chan2 ){
             //
         }
-        if( pToms ){
+        if( chan3 ){
             //
         }
-        if( pCymbals ){
+        if( chan4 ){
             //
         }
     }
 
-    // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
-    tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
-    if( abs( tempo - tempoCheck ) > 10 ){ 
-        tempo = tempoCheck;
+    // check and update stepDelay if needed  
+    stepDelayCheck = checkDelay();
+    if( abs( stepDelay - stepDelayCheck ) > 10 ){ 
+        stepDelay = stepDelayCheck;
     }
     
     return( pollTime + 75 ); // 75 is the poll interval
+}
+
+unsigned long checkDelay( ) {
+    return( 2 * ( 1100 - analogRead( tempoPot ) ) );
 }
 
 //  Send a three byte midi message  
