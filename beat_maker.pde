@@ -71,6 +71,7 @@ unsigned long nextBeat;    // trigger time for next beat
 unsigned long stepDelayCheck;  // used to monitor tempo pot
 unsigned long nextPoll;    // trigger time for next input poll
 unsigned long stepTime;    // stores the time at the start of the loop(). Eliminates multiple millis() calls.
+boolean tempoLEDstate;
 
 // variables related to drum patterns
 int currentStep = 0;
@@ -97,24 +98,14 @@ void setup() {
     pinMode( chan3LED, OUTPUT );
     pinMode( chan4LED, OUTPUT );
     
-    // turn on all leds and hold them high for 2 sec
+    // turn on all leds and hold them high for 1 sec
     digitalWrite( tempoLED, HIGH );  
     digitalWrite( chan1LED, HIGH );
     digitalWrite( chan2LED, HIGH );
     digitalWrite( chan3LED, HIGH );
     digitalWrite( chan4LED, HIGH );
-    delay( 2000 );
+    delay( 1000 );
 
-    // read programming switches and set leds correctly
-    chan1 = digitalRead( chan1SW );
-    digitalWrite( chan1LED, chan1 );
-    chan2 = digitalRead( chan2SW );
-    digitalWrite( chan2LED, chan2 );
-    chan3 = digitalRead( chan3SW );
-    digitalWrite( chan3LED, chan3 );
-    chan4 = digitalRead( chan4SW );
-    digitalWrite( chan4LED, chan4 );
-    
     // set up input pins. Set mode as INPUT, and then use digtalWrite HIGH to turn on the internal pull-up resistors.
     pinMode( chan1SW, INPUT );
     digitalWrite( chan1SW, HIGH ); 
@@ -130,8 +121,18 @@ void setup() {
     digitalWrite( progRandomSW, HIGH ); 
     pinMode( progPatSW, INPUT );
     digitalWrite( progPatSW, HIGH ); 
+
+    // read programming switches and set leds correctly
+    chan1 = digitalRead( chan1SW );
+    digitalWrite( chan1LED, chan1 );
+    chan2 = digitalRead( chan2SW );
+    digitalWrite( chan2LED, chan2 );
+    chan3 = digitalRead( chan3SW );
+    digitalWrite( chan3LED, chan3 );
+    chan4 = digitalRead( chan4SW );
+    digitalWrite( chan4LED, chan4 );
     
-    // set stepDelay from tempoPot <-- yeah, it looks weird, but it gives a good range
+    // set delay between steps
     stepDelay = checkDelay();
     
     // set tempo trigger for next beat and next poll
@@ -147,6 +148,8 @@ void loop() {
     if( stepTime > nextBeat ) {
         // set time for next beat
         nextBeat = stepTime + stepDelay;
+        
+        toggleTempoLED();
                 
         // play beats for current step
         int patternByte = (int)( currentStep / 8 );
@@ -308,6 +311,11 @@ unsigned long pollInputs( unsigned long pollTime ){
 
 unsigned long checkDelay( ) {
     return( 2 * ( 1100 - analogRead( tempoPot ) ) );
+}
+
+void toggleTempoLED( ) {
+    tempoLEDstate = !tempoLEDstate;
+    digitalWrite( tempoLED, tempoLEDstate );
 }
 
 //  Send a three byte midi message  
