@@ -50,7 +50,6 @@
 
 // define remaining global constants
 #define minTempo (1100)
-#define pollInterval (75)
 
 // define Global variables
 
@@ -79,10 +78,10 @@ unsigned long tempoLEDoff; // stores the trigger time for tempo LED to turn off
 
 // variables related to drum patterns
 int currentStep = 0;
-byte kPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-byte sPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-byte tPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-byte cPattern[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+byte kickP[] = { B00000000, B00000000, B00000000, B00000000 };
+byte snareP[] = { B00000000, B00000000, B00000000, B00000000 };
+byte hhopenP[] = { B00000000, B00000000, B00000000, B00000000 };
+byte hhclosedP[] = { B00000000, B00000000, B00000000, B00000000 };
 
 int kickRandomness = 0; 
 byte kickVolume = 100;        // volume midi values 0-127
@@ -161,88 +160,16 @@ void loop() {
         tempoLEDoff = stepTime + 125;
                 
         // play beats for current step
-        if( kPattern[ currentStep ] ){
+        int patternByte = (int)( currentStep / 8 );
+        int byteStep = currentStep % 8;
+        
+        if( bitRead( byteStep, kickP[ patternByte ] ) ) {
             midiSend( NOTEON, KICK, kickVolume );
         }
-        if( sPattern[ currentStep ] ){
-            // 0 - no drum
-            // 1 - snare
-            // 2 - closed 
-            // 3 - snare and close hh
-            // 4 - open hh
-            // 5 - snare and open hh
-            switch( sPattern[ currentStep ] ){
-                case 1:
-                    midiSend( NOTEON, SNARE, snareVolume );
-                    break;
-                case 2:
-                    midiSend( NOTEON, HHCLOSED, snareVolume ); 
-                    break;
-                case 3:
-                    midiSend( NOTEON, SNARE, snareVolume );
-                    midiSend( NOTEON, HHCLOSED, snareVolume );
-                    break;
-                case 4:
-                    midiSend( NOTEON, HHOPEN, snareVolume );
-                    break;
-                case 5:
-                    midiSend( NOTEON, SNARE, snareVolume );
-                    midiSend( NOTEON, HHOPEN, snareVolume );
-                    break;
-                default:
-                    break;
-            }
+        if( bitRead( byteStep, snareP[ patternByte ] ) ) {
+            midiSend( NOTEON, SNARE, snareVolume );
         }
-        if( tPattern[ currentStep ] ){
-            // toms pattern
-            // 1-6 toms low to high
-            switch( tPattern[ currentStep ] ){
-                case 1:
-                    midiSend( NOTEON, TOM1, tomsVolume );
-                    break;
-                case 2:
-                    midiSend( NOTEON, TOM2, tomsVolume );
-                    break;
-                case 3:
-                    midiSend( NOTEON, TOM3, tomsVolume );
-                    break;
-                case 4:
-                    midiSend( NOTEON, TOM4, tomsVolume );
-                    break;
-                case 5:
-                    midiSend( NOTEON, TOM5, tomsVolume );
-                    break;
-                case 6:
-                    midiSend( NOTEON, TOM6, tomsVolume );
-                    break;
-                default:
-                    break;
-            }
-        }
-        if( cPattern[ currentStep ] ){
-            // cymbals pattern
-            // 1-5 cymbals
-            switch( cPattern[ currentStep ] ){
-                case 1:
-                    midiSend( NOTEON, CRASH1, cymbalsVolume );
-                    break;
-                case 2:
-                    midiSend( NOTEON, CRASH2, cymbalsVolume );
-                    break;
-                case 3:
-                    midiSend( NOTEON, RIDE1, cymbalsVolume );
-                    break;
-                case 4:
-                    midiSend( NOTEON, RIDE2, cymbalsVolume );
-                    break;
-                case 5:
-                    midiSend( NOTEON, SPLASH, cymbalsVolume );
-                    break;
-                default:
-                    break;
-            }
-        }
-        
+
         // increment step
         currentStep++;
         if( currentStep == 32 ){ // 32 steps in the pattern
@@ -250,432 +177,144 @@ void loop() {
         }
     }
     
-    if( stepTime > tempoLEDoff ){
-        digitalWrite( tempoLED, LOW );
-        tempoLEDoff += 5000; // set this above the next possible led off so we don't keep hammering it down.
-    }
-    
     if( stepTime > nextPoll ){
         // set time for next beat
-        nextPoll = stepTime + pollInterval;
-        
-        // poll pattern inputs
-        int kickPotRead = analogRead( kickPot );
-        if( abs( kickPotRead - kickPotValue ) > 3 ){
-            kickPotValue = kickPotRead;
-            setKickPattern( kickPotValue );
-        }
-        
-        int snarePotRead = analogRead( snarePot );
-        if( abs( snarePotRead - snarePotValue ) > 3 ){
-            snarePotValue = snarePotRead;
-            setSnarePattern( snarePotValue );
-        }
-        
-        int tomsPotRead = analogRead( tomsPot );
-        if( abs( tomsPotRead - tomsPotValue ) > 3 ){
-            tomsPotValue = tomsPotRead;
-            setTomsPattern( tomsPotValue );
-        }
-        
-        int cymbalsPotRead = analogRead( cymbalsPot );
-        if( abs( cymbalsPotRead - cymbalsPotValue ) > 3 ){
-            cymbalsPotValue = cymbalsPotRead;
-            setCymbalsPattern( cymbalsPotValue );
-        }
-
-        // poll programming keys
-        int pKickRead = digitalRead( pKickSW );
-        if( pKick != pKickRead ){
-            pKick = pKickRead;
-            digitalWrite( pKickLED, pKick );
-        }
-
-        int pSnareRead = digitalRead( pSnareSW );
-        if( pSnare != pSnareRead ){
-            pSnare = pSnareRead;
-            digitalWrite( pSnareLED, pSnare );
-        }
-        
-        int pTomsRead = digitalRead( pTomsSW );
-        if( pToms != pTomsRead ){
-            pToms = pTomsRead;
-            digitalWrite( pTomsLED, pToms );
-        }
-        
-        int pCymbalsRead = digitalRead( pCymbalsSW );
-        if( pCymbals != pCymbalsRead ){
-            pCymbals = pCymbalsRead;
-            digitalWrite( pCymbalsLED, pCymbals );
-        }
-        
-        // poll programming inputs
-        int progReadValue = analogRead( progPot );
-        int prog128Value = ( progReadValue * 0.124  );
-        
-        if ( !(digitalRead( progRandomSW )) ){   // set randomness
-            if( pKick ){
-                kickRandomness = progReadValue;
-            }
-            if( pSnare ){
-                snareRandomness = progReadValue;
-            }
-            if( pToms ){
-                tomsRandomness = progReadValue;
-            }
-            if( pCymbals ){
-                cymbalsRandomness = progReadValue;
-            }
-        }
-        
-        if ( !(digitalRead( progVolumeSW )) ){   // set volume level to 0-127
-            if( pKick ){
-                kickVolume = prog128Value;
-            }
-            if( pSnare ){
-                snareVolume = prog128Value;
-            }
-            if( pToms ){
-                tomsVolume = prog128Value;
-            }
-            if( pCymbals ){
-                cymbalsVolume = prog128Value;
-            }
-        }
-
-        if ( !(digitalRead( progPatSW )) ){   // set beats into the pattern
-            if( pKick ){
-                //
-            }
-            if( pSnare ){
-                //
-            }
-            if( pToms ){
-                //
-            }
-            if( pCymbals ){
-                //
-            }
-        }
-    
-        // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
-        tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
-        if( abs( tempo - tempoCheck ) > 10 ){ 
-            tempo = tempoCheck;
-        }
+        nextPoll = pollInputs( stepTime );
     }
 }  
 
 //  Set the kick pattern
 void setKickPattern( int patternValue ) {
-    if( patternValue < 10 ){ // empty pattern
-        for( int i = 0; i < 32; i++ ){
-            kPattern[ i ] = 0;
-        }
-    }
-    else if( patternValue < 45 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%8 == 0 ){ // hit every 8th beat
-                kPattern[i] = 1;
-            }
-            else{
-                kPattern[i] = 0;
-            }
-            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
-                kPattern[i] = !( kPattern[i] );  
-            }
-        }
-    }
-    else if( patternValue < 145 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                kPattern[i] = 1;
-            }
-            else{
-                kPattern[i] = 0;
-            }
-            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
-                kPattern[i] = !( kPattern[i] );  
-            }
-        }
-    }
-    else if( patternValue < 480 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                kPattern[i] = 1;
-            }
-            else{
-                kPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < kickRandomness ){  // applies randomness to each beat.
-                    kPattern[i] = !( kPattern[i] );  
-                }
-            }
-        }
-    }
-    else if( patternValue < 900 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // don't hit every 4th beat
-                kPattern[i] = 0;
-            }
-            else{
-                kPattern[i] = 1;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < kickRandomness ){  // applies randomness to each beat.
-                    kPattern[i] = !( kPattern[i] );  
-                }
-            }
-        }
-    }
-    else{ // full pattern - hit on every beat
-        for( int i = 0; i < 32; i++ ){
-            kPattern[ i ] = 1;
-            if( random(1024) < kickRandomness ){  // applies randomness to each beat.
-                kPattern[i] = !( kPattern[i] );  
-            }
-        }
+    switch( patternValue ){
+        case 0:
+            kickP[ 0 ] = B00000000;
+            kickP[ 0 ] = B00000000;
+            kickP[ 0 ] = B00000000;
+            kickP[ 0 ] = B00000000;
+            break;
+        case 1:
+            kickP[ 0 ] = B10000000;
+            kickP[ 0 ] = B10000000;
+            kickP[ 0 ] = B10000000;
+            kickP[ 0 ] = B10000000;
+            break;
     }
 }
 
-//  Set the Snare pattern
 void setSnarePattern( int patternValue ) {
-    // 0 - no drum
-    // 1 - snare
-    // 2 - closed hh
-    // 3 - snare and close hh
-    // 4 - open hh
-    // 5 - snare and open hh
-    if( patternValue < 10 ){ // empty pattern
-        for( int i = 0; i < 32; i++ ){
-            sPattern[ i ] = 0;
-        }
-    }
-    else if( patternValue < 40 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%8 == 0 ){ // hit every 8th beat
-                sPattern[i] = 1;
-            }
-            else{
-                sPattern[i] = 0;
-            }
-            if( random(1024) < snareRandomness ){  // applies randomness to each beat.
-                sPattern[i] = !( sPattern[i] );  
-            }
-            // add random closed hh
-            if( random( 512 ) < snareRandomness ){
-                sPattern[i] = sPattern[i] + 2;
-            }
-        }
-    }
-    else if( patternValue < 145 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                sPattern[i] = 1;
-            }
-            else{
-                sPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
-                    sPattern[i] = !( sPattern[i] );  
-                }
-            }
-        }
-    }
-    else if( patternValue < 480 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                sPattern[i] = 1;
-            }
-            else{
-                sPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
-                    sPattern[i] = !( sPattern[i] );  
-                }
-            }
-        }
-    }
-    else if( patternValue < 900 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // don't hit every 4th beat
-                sPattern[i] = 0;
-            }
-            else{
-                sPattern[i] = 1;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < snareRandomness ){  // applies randomness to each beat.
-                    sPattern[i] = !( sPattern[i] );  
-                }
-            }
-        }
-    }
-    else{ // full pattern - hit on every beat
-        for( int i = 0; i < 32; i++ ){
-            sPattern[ i ] = 1;
-            if( random(1024) < snareRandomness ){  // applies randomness to each beat.
-                sPattern[i] = !( sPattern[i] );  
-            }
-        }
-    }
 }
-
-//  Set the Toms pattern
 void setTomsPattern( int patternValue ) {
-    // 1 - tom1
-    // 2 - tom2
-    // 3 - tom3
-    // 4 - tom4
-    // 5 - tom5
-    // 6 - tom6
-    if( patternValue < 10 ){ // empty pattern
-        for( int i = 0; i < 32; i++ ){
-            tPattern[ i ] = 0;
-        }
-    }
-    else if( patternValue < 40 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%8 == 0 ){ // hit every 8th beat
-                tPattern[i] = random(1,3);
-            }
-            else{
-                tPattern[i] = 0;
-            }
-        }
-    }
-    else if( patternValue < 145 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                tPattern[i] = random(1,5);
-            }
-            else{
-                tPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
-                    tPattern[i] = random(0,7);  
-                }
-            }
-        }
-    }
-    else if( patternValue < 480 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                tPattern[i] = random(1,5);
-            }
-            else{
-                tPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
-                    tPattern[i] = random(0,7);  
-                }
-            }
-        }
-    }else if( patternValue < 900 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                tPattern[i] = random(1,5);
-            }
-            else{
-                tPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
-                    tPattern[i] = random(0,7);  
-                }
-            }
-        }
-    }
-    else{ // full pattern - hit on every beat
-        for( int i = 0; i < 32; i++ ){
-            tPattern[ i ] = 1;
-            if( random(1024) < tomsRandomness ){  // applies randomness to each beat.
-                tPattern[i] = random(0,7);  
-            }
-        }
-    }
+}
+void setCymbalsPattern( int patternValue ) {
 }
 
-//  Set the Cymbals pattern
-void setCymbalsPattern( int patternValue ) {
-    // 1- CRASH1 (0x31)
-    // 2- CRASH2 (0x39)
-    // 3- RIDE1 (0x33)
-    // 4- RIDE2 (0x3B)
-    // 5- SPLASH (0x37)
-    if( patternValue < 10 ){ // empty pattern
-        for( int i = 0; i < 32; i++ ){
-            cPattern[ i ] = 0;
+unsigned long pollInputs( unsigned long pollTime ){
+    // poll pattern inputs
+    int kickPotRead = analogRead( kickPot );
+    if( abs( kickPotRead - kickPotValue ) > 3 ){
+        kickPotValue = kickPotRead;
+        setKickPattern( kickPotValue );
+    }
+    
+    int snarePotRead = analogRead( snarePot );
+    if( abs( snarePotRead - snarePotValue ) > 3 ){
+        snarePotValue = snarePotRead;
+        setSnarePattern( snarePotValue );
+    }
+    
+    int tomsPotRead = analogRead( tomsPot );
+    if( abs( tomsPotRead - tomsPotValue ) > 3 ){
+        tomsPotValue = tomsPotRead;
+        setTomsPattern( tomsPotValue );
+    }
+    
+    int cymbalsPotRead = analogRead( cymbalsPot );
+    if( abs( cymbalsPotRead - cymbalsPotValue ) > 3 ){
+        cymbalsPotValue = cymbalsPotRead;
+        setCymbalsPattern( cymbalsPotValue );
+    }
+
+    // poll programming keys
+    int pKickRead = digitalRead( pKickSW );
+    if( pKick != pKickRead ){
+        pKick = pKickRead;
+        digitalWrite( pKickLED, pKick );
+    }
+
+    int pSnareRead = digitalRead( pSnareSW );
+    if( pSnare != pSnareRead ){
+        pSnare = pSnareRead;
+        digitalWrite( pSnareLED, pSnare );
+    }
+    
+    int pTomsRead = digitalRead( pTomsSW );
+    if( pToms != pTomsRead ){
+        pToms = pTomsRead;
+        digitalWrite( pTomsLED, pToms );
+    }
+    
+    int pCymbalsRead = digitalRead( pCymbalsSW );
+    if( pCymbals != pCymbalsRead ){
+        pCymbals = pCymbalsRead;
+        digitalWrite( pCymbalsLED, pCymbals );
+    }
+    
+    // poll programming inputs
+    int progReadValue = analogRead( progPot );
+    int prog128Value = ( progReadValue * 0.124  );
+    
+    if ( !(digitalRead( progRandomSW )) ){   // set randomness
+        if( pKick ){
+            kickRandomness = progReadValue;
+        }
+        if( pSnare ){
+            snareRandomness = progReadValue;
+        }
+        if( pToms ){
+            tomsRandomness = progReadValue;
+        }
+        if( pCymbals ){
+            cymbalsRandomness = progReadValue;
         }
     }
-    else if( patternValue < 40 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%8 == 0 ){ // hit every 8th beat
-                cPattern[i] = random(3,6);
-            }
-            else{
-                cPattern[i] = 0;
-            }
+    
+    if ( !(digitalRead( progVolumeSW )) ){   // set volume level to 0-127
+        if( pKick ){
+            kickVolume = prog128Value;
+        }
+        if( pSnare ){
+            snareVolume = prog128Value;
+        }
+        if( pToms ){
+            tomsVolume = prog128Value;
+        }
+        if( pCymbals ){
+            cymbalsVolume = prog128Value;
         }
     }
-    else if( patternValue < 145 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                cPattern[i] = random(2,6);
-            }
-            else{
-                cPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
-                    cPattern[i] = random(0,6);  
-                }
-            }
+
+    if ( !(digitalRead( progPatSW )) ){   // set beats into the pattern
+        if( pKick ){
+            //
+        }
+        if( pSnare ){
+            //
+        }
+        if( pToms ){
+            //
+        }
+        if( pCymbals ){
+            //
         }
     }
-    else if( patternValue < 480 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                cPattern[i] = random(2,6);
-            }
-            else{
-                cPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
-                    cPattern[i] = random(0,6);  
-                }
-            }
-        }
+
+    // check and update tempo if needed  <-- yeah, it looks weird, but it gives a good range
+    tempoCheck = 2 * ( minTempo - analogRead( tempoPot ) );
+    if( abs( tempo - tempoCheck ) > 10 ){ 
+        tempo = tempoCheck;
     }
-    else if( patternValue < 900 ){
-        for( int i = 0; i < 32; i++ ){
-            if( i%4 == 0 ){ // hit every 4th beat
-                cPattern[i] = random(2,6);
-            }
-            else{
-                cPattern[i] = 0;
-            }
-            if( i > 23 ){  // only randomise the last 8 beats
-                if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
-                    cPattern[i] = random(0,6);  
-                }
-            }
-        }
-    }
-    else{ // full pattern - hit on every beat
-        for( int i = 0; i < 32; i++ ){
-            cPattern[ i ] = 5;
-            if( random(1024) < cymbalsRandomness ){  // applies randomness to each beat.
-                cPattern[i] = random(0,6);  
-            }
-        }
-    }
+    
+    return( pollTime + 75 ); // 75 is the poll interval
 }
 
 //  Send a three byte midi message  
