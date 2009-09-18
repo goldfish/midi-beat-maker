@@ -29,20 +29,20 @@
 // define analog input pins
 #define tempoPot (0)
 #define progPot (1)
-#define slider1 (2)
-#define slider2 (3)
-#define slider3 (4)
-#define slider4 (5)
+#define slider4 (2)
+#define slider3 (3)
+#define slider2 (4)
+#define slider1 (5)
 
 // define digital i/o pins
-#define chan1LED (10)
-#define chan1SW (5)
-#define chan2LED (8)
-#define chan2SW (4)
-#define chan3LED (9)
-#define chan3SW (3)
-#define chan4LED (7)
-#define chan4SW (2)
+#define chan4LED (10)
+#define chan4SW (5)
+#define chan3LED (8)
+#define chan3SW (4)
+#define chan2LED (9)
+#define chan2SW (3)
+#define chan1LED (7)
+#define chan1SW (2)
 #define progVolumeSW (12)
 #define progRandomSW (11)
 #define progPatSW (13)
@@ -88,8 +88,8 @@ byte hhclosedVolume = 100;
 void setup() {
     //  Set serial rate to 31250 for MIDI
     //  Set serial rate to 9600 for testing
-    Serial.begin( 31250 );
-    //Serial.begin( 9600 );
+    //Serial.begin( 31250 );
+    Serial.begin( 9600 );
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
@@ -155,10 +155,10 @@ void loop() {
         int patternByte = (int)( currentStep / 8 );
         int byteStep = currentStep % 8;
         
-        if( bitRead( byteStep, kickP[ patternByte ] ) ) {
+        if( bitRead( kickP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, KICK, kickVolume );
         }
-        if( bitRead( byteStep, snareP[ patternByte ] ) ) {
+        if( bitRead( snareP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, SNARE, snareVolume );
         }
 
@@ -177,18 +177,59 @@ void loop() {
 
 //  Set the kick pattern
 void setKickPattern( int patternValue ) {
-    switch( patternValue ){
+    int patternChoice;
+    if( patternValue < 15 ){
+        patternChoice = 0;
+    }
+    else if( patternValue < 90 ){
+        patternChoice = 1;
+    }
+    else if( patternValue < 300 ){
+        patternChoice = 2;
+    }
+    else if( patternValue < 880 ){
+        patternChoice = 3;
+    }
+    else{
+        patternChoice = 4;
+    }
+    
+    switch( patternChoice ){
         case 0:
             kickP[ 0 ] = B00000000;
-            kickP[ 0 ] = B00000000;
-            kickP[ 0 ] = B00000000;
-            kickP[ 0 ] = B00000000;
+            kickP[ 1 ] = B00000000;
+            kickP[ 2 ] = B00000000;
+            kickP[ 3 ] = B00000000;
             break;
         case 1:
             kickP[ 0 ] = B10000000;
-            kickP[ 0 ] = B10000000;
-            kickP[ 0 ] = B10000000;
-            kickP[ 0 ] = B10000000;
+            kickP[ 1 ] = B10000000;
+            kickP[ 2 ] = B10000000;
+            kickP[ 3 ] = B10000000;
+            break;
+        case 2:
+            kickP[ 0 ] = B10001000;
+            kickP[ 1 ] = B10001000;
+            kickP[ 2 ] = B10001000;
+            kickP[ 3 ] = B10001000;
+            break;
+        case 3:
+            kickP[ 0 ] = B10101010;
+            kickP[ 1 ] = B10101010;
+            kickP[ 2 ] = B10101010;
+            kickP[ 3 ] = B10101010;
+            break;
+        case 4:
+            kickP[ 0 ] = B10001000;
+            kickP[ 1 ] = B10001000;
+            kickP[ 2 ] = B10001000;
+            kickP[ 3 ] = B10101010;
+            break;
+        case 5:
+            kickP[ 0 ] = B10100000;
+            kickP[ 1 ] = B10100000;
+            kickP[ 2 ] = B10100000;
+            kickP[ 3 ] = B10100100;
             break;
     }
 }
@@ -310,7 +351,7 @@ unsigned long pollInputs( unsigned long pollTime ){
 }
 
 unsigned long checkDelay( ) {
-    return( 2 * ( 1100 - analogRead( tempoPot ) ) );
+    return( 1100 - analogRead( tempoPot ) );
 }
 
 void toggleTempoLED( ) {
