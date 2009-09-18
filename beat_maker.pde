@@ -79,11 +79,12 @@ byte kickP[] = { B00000000, B00000000, B00000000, B00000000 };
 byte snareP[] = { B00000000, B00000000, B00000000, B00000000 };
 byte hhopenP[] = { B00000000, B00000000, B00000000, B00000000 };
 byte hhclosedP[] = { B00000000, B00000000, B00000000, B00000000 };
+byte tom1P[] = { B00000000, B00000000, B00000000, B00000000 };
 
 byte kickVolume = 100;        // volume midi values 0-127
 byte snareVolume = 100;
-byte hhopenVolume = 100;
-byte hhclosedVolume = 100;
+byte hhVolume = 100;
+byte tomsVolume = 100;
 
 void setup() {
     //  Set serial rate to 31250 for MIDI
@@ -162,7 +163,20 @@ void loop() {
         if( bitRead( snareP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, SNARE, snareVolume );
         }
-
+        
+        if( bitRead( hhopenP[ patternByte ], byteStep ) ) {
+            midiSend( NOTEON, HHOPEN, hhVolume );
+        }
+        
+        if( bitRead( hhclosedP[ patternByte ], byteStep ) ) {
+            midiSend( NOTEOFF, HHOPEN, B00000000 );
+            midiSend( NOTEON, HHCLOSED, hhVolume );
+        }
+        
+        if( bitRead( tom1P[ patternByte ], byteStep ) ) {
+            midiSend( NOTEON, TOM1, tomsVolume );
+        }
+        
         // increment step
         currentStep++;
         if( currentStep == 32 ){ // 32 steps in the pattern
