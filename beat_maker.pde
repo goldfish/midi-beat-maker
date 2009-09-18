@@ -158,6 +158,7 @@ void loop() {
         if( bitRead( kickP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, KICK, kickVolume );
         }
+        
         if( bitRead( snareP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, SNARE, snareVolume );
         }
@@ -174,72 +175,6 @@ void loop() {
         nextPoll = pollInputs( stepTime );
     }
 }  
-
-//  Set the kick pattern
-void setKickPattern( int patternValue ) {
-    int patternChoice;
-    if( patternValue < 15 ){
-        patternChoice = 0;
-    }
-    else if( patternValue < 90 ){
-        patternChoice = 1;
-    }
-    else if( patternValue < 300 ){
-        patternChoice = 2;
-    }
-    else if( patternValue < 880 ){
-        patternChoice = 3;
-    }
-    else{
-        patternChoice = 4;
-    }
-    
-    switch( patternChoice ){
-        case 0:
-            kickP[ 0 ] = B00000000;
-            kickP[ 1 ] = B00000000;
-            kickP[ 2 ] = B00000000;
-            kickP[ 3 ] = B00000000;
-            break;
-        case 1:
-            kickP[ 0 ] = B10000000;
-            kickP[ 1 ] = B10000000;
-            kickP[ 2 ] = B10000000;
-            kickP[ 3 ] = B10000000;
-            break;
-        case 2:
-            kickP[ 0 ] = B10001000;
-            kickP[ 1 ] = B10001000;
-            kickP[ 2 ] = B10001000;
-            kickP[ 3 ] = B10001000;
-            break;
-        case 3:
-            kickP[ 0 ] = B10101010;
-            kickP[ 1 ] = B10101010;
-            kickP[ 2 ] = B10101010;
-            kickP[ 3 ] = B10101010;
-            break;
-        case 4:
-            kickP[ 0 ] = B10001000;
-            kickP[ 1 ] = B10001000;
-            kickP[ 2 ] = B10001000;
-            kickP[ 3 ] = B10101010;
-            break;
-        case 5:
-            kickP[ 0 ] = B10100000;
-            kickP[ 1 ] = B10100000;
-            kickP[ 2 ] = B10100000;
-            kickP[ 3 ] = B10100100;
-            break;
-    }
-}
-
-void setSnarePattern( int patternValue ) {
-}
-void setTomsPattern( int patternValue ) {
-}
-void setCymbalsPattern( int patternValue ) {
-}
 
 unsigned long pollInputs( unsigned long pollTime ){
     // poll pattern inputs
@@ -296,7 +231,7 @@ unsigned long pollInputs( unsigned long pollTime ){
     int progReadValue = analogRead( progPot );
     int prog128Value = ( progReadValue * 0.124  );
     
-    if ( !(digitalRead( progRandomSW )) ){   // set randomness
+    if ( !(digitalRead( progRandomSW ) ) ){   // set randomness
         byte xorByte;
         int randRange;
         if( progReadValue < 30 ){
@@ -380,6 +315,116 @@ unsigned long pollInputs( unsigned long pollTime ){
     return( pollTime + 75 ); // 75 is the poll interval
 }
 
+//  Set the kick pattern
+void setKickPattern( int patternValue ) {
+    int patternChoice;
+    if( patternValue < 15 ){
+        patternChoice = 0;
+    }
+    else if( patternValue < 90 ){
+        patternChoice = 1;
+    }
+    else if( patternValue < 300 ){
+        patternChoice = 2;
+    }
+    else if( patternValue < 880 ){
+        patternChoice = 3;
+    }
+    else{
+        patternChoice = 4;
+    }
+    
+    switch( patternChoice ){
+        case 0:
+            kickP[ 0 ] = B00000000;
+            kickP[ 1 ] = B00000000;
+            kickP[ 2 ] = B00000000;
+            kickP[ 3 ] = B00000000;
+            break;
+        case 1:
+            kickP[ 0 ] = B10000000;
+            kickP[ 1 ] = B10000000;
+            kickP[ 2 ] = B10000000;
+            kickP[ 3 ] = B10000000;
+            break;
+        case 2:
+            kickP[ 0 ] = B10001000;
+            kickP[ 1 ] = B10001000;
+            kickP[ 2 ] = B10001000;
+            kickP[ 3 ] = B10001000;
+            break;
+        case 3:
+            kickP[ 0 ] = B10101010;
+            kickP[ 1 ] = B10101010;
+            kickP[ 2 ] = B10101010;
+            kickP[ 3 ] = B10101010;
+            break;
+        case 4:
+            kickP[ 0 ] = B10001000;
+            kickP[ 1 ] = B10001000;
+            kickP[ 2 ] = B10001000;
+            kickP[ 3 ] = B10101010;
+            break;
+    }
+}
+
+void setSnarePattern( int patternValue ) {
+    int patternChoice;
+    if( patternValue < 15 ){
+        patternChoice = 0;
+    }
+    else if( patternValue < 90 ){
+        patternChoice = 1;
+    }
+    else if( patternValue < 300 ){
+        patternChoice = 2;
+    }
+    else if( patternValue < 880 ){
+        patternChoice = 3;
+    }
+    else{
+        patternChoice = 4;
+    }
+    
+    switch( patternChoice ){
+        case 0:
+            snareP[ 0 ] = B00000000;
+            snareP[ 1 ] = B00000000;
+            snareP[ 2 ] = B00000000;
+            snareP[ 3 ] = B00000000;
+            break;
+        case 1:
+            snareP[ 0 ] = B10000000;
+            snareP[ 1 ] = B10000000;
+            snareP[ 2 ] = B10000000;
+            snareP[ 3 ] = B10000000;
+            break;
+        case 2:
+            snareP[ 0 ] = B10001000;
+            snareP[ 1 ] = B10001000;
+            snareP[ 2 ] = B10001000;
+            snareP[ 3 ] = B10001000;
+            break;
+        case 3:
+            snareP[ 0 ] = B10001000;
+            snareP[ 1 ] = B00101000;
+            snareP[ 2 ] = B10001000;
+            snareP[ 3 ] = B10101010;
+            break;
+        case 4:
+            snareP[ 0 ] = B00001000;
+            snareP[ 1 ] = B00001000;
+            snareP[ 2 ] = B00001000;
+            snareP[ 3 ] = B00101010;
+            break;
+    }
+}
+
+void setTomsPattern( int patternValue ) {
+}
+void setCymbalsPattern( int patternValue ) {
+}
+
 int checkDelay( ) {
     return( 1100 - analogRead( tempoPot ) );
 }
@@ -399,7 +444,7 @@ void dumpByte( byte dumpMe ) {
 
 //  Send a three byte midi message  
 void midiSend(char status, char data1, char data2) {
-    Serial.print(status, BYTE); // type of message usually noteon/off and channel
+    Serial.print(status, BYTE); // type of message usually note on/off and channel
     Serial.print(data1, BYTE);  // usually note
     Serial.print(data2, BYTE);  // usually velocity
 }
