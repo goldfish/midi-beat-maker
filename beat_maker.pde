@@ -67,8 +67,8 @@ int slider4Value = 1200;
 
 // variables to store and control timing
 int stepDelay;  // the length of the pauses between beats.
+int stepDelayCheck;  // used to monitor tempo pot
 unsigned long nextBeat;    // trigger time for next beat
-unsigned long stepDelayCheck;  // used to monitor tempo pot
 unsigned long nextPoll;    // trigger time for next input poll
 unsigned long stepTime;    // stores the time at the start of the loop(). Eliminates multiple millis() calls.
 boolean tempoLEDstate;
@@ -153,7 +153,7 @@ void loop() {
                 
         // play beats for current step
         int patternByte = (int)( currentStep / 8 );
-        int byteStep = currentStep % 8;
+        int byteStep = 7 - ( currentStep % 8 );
         
         if( bitRead( kickP[ patternByte ], byteStep ) ) {
             midiSend( NOTEON, KICK, kickVolume );
@@ -297,11 +297,38 @@ unsigned long pollInputs( unsigned long pollTime ){
     int prog128Value = ( progReadValue * 0.124  );
     
     if ( !(digitalRead( progRandomSW )) ){   // set randomness
+        byte xorByte;
+        int randRange;
+        if( progReadValue < 30 ){
+            xorByte = 0;
+            randRange = 0;
+        }
+        else if( progReadValue < 150 ){
+            xorByte = progReadValue/4;
+            randRange = 3;
+        }
+        else if( progReadValue < 550 ){
+            xorByte = progReadValue/4;
+            randRange = 2;
+        }
+        else if( progReadValue < 890 ){
+            xorByte = progReadValue/4;
+            randRange = 0;
+        }
+        else{
+            xorByte = 255;
+            randRange = 0;
+        }
+        
         if( chan1 ){
-            //kickRandomness = progReadValue;
+            for( int i = 3; i >= randRange; i-- ){
+                kickP[ i ] = kickP[ i ] ^ ( xorByte );
+            }
         }
         if( chan2 ){
-            //snareRandomness = progReadValue;
+            for( int i = 3; i >= randRange; i-- ){
+                snareP[ i ] = snareP[ i ] ^ ( xorByte );
+            }
         }
         if( chan3 ){
             //tomsRandomness = progReadValue;
@@ -326,7 +353,9 @@ unsigned long pollInputs( unsigned long pollTime ){
         }
     }
 
+    /* **** doesn't seem to be working. May be a hardware issue.
     if ( !(digitalRead( progPatSW )) ){   // set beats into the pattern
+        Serial.println( "Pattern" );
         if( chan1 ){
             //
         }
@@ -340,6 +369,7 @@ unsigned long pollInputs( unsigned long pollTime ){
             //
         }
     }
+    //*/
 
     // check and update stepDelay if needed  
     stepDelayCheck = checkDelay();
@@ -350,13 +380,21 @@ unsigned long pollInputs( unsigned long pollTime ){
     return( pollTime + 75 ); // 75 is the poll interval
 }
 
-unsigned long checkDelay( ) {
+int checkDelay( ) {
     return( 1100 - analogRead( tempoPot ) );
 }
 
 void toggleTempoLED( ) {
     tempoLEDstate = !tempoLEDstate;
     digitalWrite( tempoLED, tempoLEDstate );
+}
+
+void dumpByte( byte dumpMe ) {
+    Serial.print( "*" );
+    for( int i = 0; i < 8; i++ ){
+        Serial.print( bitRead( dumpMe, 7-i ) );
+    }
+    Serial.println( "*" );
 }
 
 //  Send a three byte midi message  
