@@ -21,6 +21,55 @@
 #define RIDE2 (0x3B)
 #define SPLASH (0x37)
 
+// General Midi Percussion Map - Decimal Values
+// 35 Acoustic Bass Drum 
+// 36 Bass Drum 1 	
+// 37 Side Stick 	
+// 38 Acoustic Snare 	
+// 39 Hand Clap
+// 40 Electric Snare
+// 41 Low Floor Tom
+// 42 Closed Hi-Hat
+// 43 High Floor Tom
+// 44 Pedal Hi-Hat
+// 45 Low Tom
+// 46 Open Hi-Hat
+// 47 Low-Mid Tom
+// 48 Hi-Mid Tom
+// 49 Crash Cymbal 1
+// 50 High Tom
+// 51 Ride Cymbal 1
+// 52 Chinese Cymbal
+// 53 Ride Bell
+// 54 Tambourine
+// 55 Splash Cymbal
+// 56 Cowbell
+// 57 Crash Cymbal 2
+// 58 Vibraslap
+// 59 Ride Cymbal 2
+// 60 Hi Bongo
+// 61 Low Bongo
+// 62 Mute Hi Conga
+// 63 Open Hi Conga
+// 64 Low Conga
+// 65 High Timbale
+// 66 Low Timbale
+// 67 High Agogo
+// 68 Low Agogo
+// 69 Cabasa
+// 70 Maracas
+// 71 Short Whistle
+// 72 Long Whistle
+// 73 Short Guiro
+// 74 Long Guiro
+// 75 Claves
+// 76 Hi Wood Block
+// 77 Low Wood Block
+// 78 Mute Cuica
+// 79 Open Cuica
+// 80 Mute Triangle
+// 81 Open Triangle
+
 // midi status bytes for channel 10
 #define NOTEON (0x99) 
 #define NOTEOFF (0x89)
@@ -89,8 +138,8 @@ byte tomsVolume = 100;
 void setup() {
     //  Set serial rate to 31250 for MIDI
     //  Set serial rate to 9600 for testing
-    //Serial.begin( 31250 );
-    Serial.begin( 9600 );
+    Serial.begin( 31250 );
+    //Serial.begin( 9600 );
     
     // set up led output pins
     pinMode( tempoLED, OUTPUT );
@@ -248,11 +297,11 @@ unsigned long pollInputs( unsigned long pollTime ){
     if ( !(digitalRead( progRandomSW ) ) ){   // set randomness
         byte xorByte;
         int randRange;
-        if( progReadValue < 30 ){
+        if( progReadValue < 50 ){
             xorByte = 0;
             randRange = 0;
         }
-        else if( progReadValue < 150 ){
+        else if( progReadValue < 350 ){
             xorByte = progReadValue/4;
             randRange = 3;
         }
@@ -295,7 +344,7 @@ unsigned long pollInputs( unsigned long pollTime ){
             snareVolume = prog128Value;
         }
         if( chan3 ){
-            //tomsVolume = prog128Value;
+            hhVolume = prog128Value;
         }
         if( chan4 ){
             //cymbalsVolume = prog128Value;
@@ -426,15 +475,84 @@ void setSnarePattern( int patternValue ) {
             snareP[ 3 ] = B10101010;
             break;
         case 4:
-            snareP[ 0 ] = B00001000;
-            snareP[ 1 ] = B00001000;
-            snareP[ 2 ] = B00001000;
-            snareP[ 3 ] = B00101010;
+            snareP[ 0 ] = B10000000;
+            snareP[ 1 ] = B10000000;
+            snareP[ 2 ] = B10000000;
+            snareP[ 3 ] = B11111111;
             break;
     }
 }
 
 void setTomsPattern( int patternValue ) {
+    int patternChoice;
+    if( patternValue < 15 ){
+        patternChoice = 0;
+    }
+    else if( patternValue < 90 ){
+        patternChoice = 1;
+    }
+    else if( patternValue < 300 ){
+        patternChoice = 2;
+    }
+    else if( patternValue < 880 ){
+        patternChoice = 3;
+    }
+    else{
+        patternChoice = 4;
+    }
+    
+    switch( patternChoice ){
+        case 0:
+            hhopenP[ 0 ] = B00000000;
+            hhopenP[ 1 ] = B00000000;
+            hhopenP[ 2 ] = B00000000;
+            hhopenP[ 3 ] = B00000000;
+            hhclosedP[ 0 ] = B00000000;
+            hhclosedP[ 1 ] = B00000000;
+            hhclosedP[ 2 ] = B00000000;
+            hhclosedP[ 3 ] = B00000000;
+            break;
+        case 1:
+            hhopenP[ 0 ] = B00000000;
+            hhopenP[ 1 ] = B00000000;
+            hhopenP[ 2 ] = B00010000;
+            hhopenP[ 3 ] = B00001000;
+            hhclosedP[ 0 ] = B00100000;
+            hhclosedP[ 1 ] = B00100000;
+            hhclosedP[ 2 ] = B00100010;
+            hhclosedP[ 3 ] = B10010000;
+            break;
+        case 2:
+            hhopenP[ 0 ] = B00000000;
+            hhopenP[ 1 ] = B00000000;
+            hhopenP[ 2 ] = B00000000;
+            hhopenP[ 3 ] = B00001000;
+            hhclosedP[ 0 ] = B10101010;
+            hhclosedP[ 1 ] = B10101010;
+            hhclosedP[ 2 ] = B10101010;
+            hhclosedP[ 3 ] = B10100000;
+            break;
+        case 3:
+            hhopenP[ 0 ] = B00010001;
+            hhopenP[ 1 ] = B00010001;
+            hhopenP[ 2 ] = B00010001;
+            hhopenP[ 3 ] = B10100000;
+            hhclosedP[ 0 ] = B11101110;
+            hhclosedP[ 1 ] = B11101110;
+            hhclosedP[ 2 ] = B11101110;
+            hhclosedP[ 3 ] = B00001110;
+            break;
+        case 4:
+            hhopenP[ 0 ] = B00000000;
+            hhopenP[ 1 ] = B00000000;
+            hhopenP[ 2 ] = B00000000;
+            hhopenP[ 3 ] = B00000010;
+            hhclosedP[ 0 ] = B11111111;
+            hhclosedP[ 1 ] = B11111111;
+            hhclosedP[ 2 ] = B11111111;
+            hhclosedP[ 3 ] = B11110000;
+            break;
+    }
 }
 void setCymbalsPattern( int patternValue ) {
 }
